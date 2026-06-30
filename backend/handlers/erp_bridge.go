@@ -88,7 +88,8 @@ func ERPBridgeConfigHandler(db *sql.DB) http.HandlerFunc {
 					ErpType:         "oracle_xml",
 				}
 			} else if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Printf("ERPBridgeConfig GET error (company %s): %v", companyID, err)
+				http.Error(w, "Erro ao carregar configuração ERP Bridge", http.StatusInternalServerError)
 				return
 			} else {
 				cfg.Horario = horario
@@ -341,7 +342,8 @@ func ERPBridgeTestConnectionHandler(db *sql.DB) http.HandlerFunc {
 		conn, err := sql.Open("oracle", connStr)
 		if err != nil {
 			log.Printf("ERPBridge test-connection sql.Open error (company %s): %v", companyID, err)
-			json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": err.Error()})
+			// Não enviar err.Error() ao cliente: o driver go-ora pode incluir o DSN com senha
+			json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": "Falha ao inicializar conexão Oracle. Verifique DSN, usuário e senha."})
 			return
 		}
 		defer conn.Close()
@@ -350,7 +352,8 @@ func ERPBridgeTestConnectionHandler(db *sql.DB) http.HandlerFunc {
 		defer cancel()
 		if pingErr := conn.PingContext(ctx); pingErr != nil {
 			log.Printf("ERPBridge test-connection ping error (company %s): %v", companyID, pingErr)
-			json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": pingErr.Error()})
+			// Não enviar pingErr.Error() ao cliente: o driver go-ora pode incluir o DSN com senha
+			json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": "Falha ao conectar ao Oracle. Verifique DSN, usuário e senha."})
 			return
 		}
 
