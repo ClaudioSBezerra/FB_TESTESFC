@@ -1,0 +1,72 @@
+services:
+  # Backend (Go) — porta 8085, distinta do FB_APU04 (8084) para coexistência local (D-13)
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fb_testesfc-api
+    restart: always
+    ports:
+      - "8085:8085"
+    expose:
+      - "8085"
+    environment:
+      - PORT=8085
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - APP_URL=${APP_URL:-http://localhost:3004}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fb_testesfc_net
+
+  # Frontend (React) — porta 3004, distinta do FB_APU04 (3003) (D-13)
+  web:
+    build:
+      context: ./frontend
+    container_name: fb_testesfc-web
+    restart: always
+    ports:
+      - "3004:80"
+    depends_on:
+      - api
+    networks:
+      - fb_testesfc_net
+
+  # Banco de Dados — volume próprio para não colidir com FB_APU04 (D-13)
+  db:
+    image: postgres:15-alpine
+    container_name: fb_testesfc-db
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data_testesfc:/var/lib/postgresql/data
+    networks:
+      - fb_testesfc_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  fb_testesfc_net:
+    driver: bridge
+
+volumes:
+  postgres_data_testesfc:
