@@ -1103,6 +1103,16 @@ func SetPreferredCompanyHandler(db *sql.DB) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()
 
+		// Validar que o usuário tem acesso à empresa antes de salvar preferência (WR-06).
+		// Evita que qualquer usuário autenticado crie uma entrada espúria em user_environments
+		// para uma empresa de outro tenant apenas conhecendo o UUID.
+		_, err := GetEffectiveCompanyID(db, userID, body.CompanyID)
+		if err != nil {
+			log.Printf("SetPreferredCompany: user %s sem acesso à company %s: %v", userID, body.CompanyID, err)
+			http.Error(w, "company not accessible", http.StatusForbidden)
+			return
+		}
+
 		res, err := db.ExecContext(ctx, `
 			INSERT INTO user_environments (user_id, environment_id, preferred_company_id)
 			SELECT $1, eg.environment_id, $2::uuid
