@@ -255,6 +255,82 @@ func main() {
 	http.HandleFunc("/api/auth/change-password",   withAuth(handlers.ChangePasswordHandler, ""))
 	http.HandleFunc("/api/auth/preferred-company", withAuth(handlers.SetPreferredCompanyHandler, ""))
 	http.HandleFunc("/api/user/companies",         withAuth(handlers.GetUserCompaniesHandler, ""))
+	http.HandleFunc("/api/user/hierarchy",         withAuth(handlers.GetUserHierarchyHandler, ""))
+
+	// ── Rotas de admin (role=admin) ───────────────────────────────────────────
+	http.HandleFunc("/api/admin/users",          withAuth(handlers.ListUsersHandler, "admin"))
+	http.HandleFunc("/api/admin/users/create",   withAuth(handlers.CreateUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users/promote",  withAuth(handlers.PromoteUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users/delete",   withAuth(handlers.DeleteUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users/reassign", withAuth(handlers.ReassignUserHandler, "admin"))
+
+	// ── Hierarquia ambiente/grupo/empresa (multi-method inline) ──────────────
+	http.HandleFunc("/api/config/environments", withAuth(func(db *sql.DB) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				handlers.GetEnvironmentsHandler(db)(w, r)
+			case http.MethodPost:
+				handlers.CreateEnvironmentHandler(db)(w, r)
+			case http.MethodPut:
+				handlers.UpdateEnvironmentHandler(db)(w, r)
+			case http.MethodDelete:
+				handlers.DeleteEnvironmentHandler(db)(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		}
+	}, ""))
+
+	http.HandleFunc("/api/config/groups", withAuth(func(db *sql.DB) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				handlers.GetGroupsHandler(db)(w, r)
+			case http.MethodPost:
+				handlers.CreateGroupHandler(db)(w, r)
+			case http.MethodPut:
+				handlers.UpdateGroupHandler(db)(w, r)
+			case http.MethodDelete:
+				handlers.DeleteGroupHandler(db)(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		}
+	}, ""))
+
+	http.HandleFunc("/api/config/companies", withAuth(func(db *sql.DB) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				handlers.GetCompaniesHandler(db)(w, r)
+			case http.MethodPost:
+				handlers.CreateCompanyHandler(db)(w, r)
+			case http.MethodPut:
+				handlers.UpdateCompanyHandler(db)(w, r)
+			case http.MethodDelete:
+				handlers.DeleteCompanyHandler(db)(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		}
+	}, ""))
+
+	// ── Managers ──────────────────────────────────────────────────────────────
+	http.HandleFunc("/api/managers",        withAuth(handlers.ListManagersHandler, ""))
+	http.HandleFunc("/api/managers/create", withAuth(handlers.CreateManagerHandler, ""))
+	http.HandleFunc("/api/managers/", withAuth(func(db *sql.DB) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodPut, http.MethodPatch:
+				handlers.UpdateManagerHandler(db)(w, r)
+			case http.MethodDelete:
+				handlers.DeleteManagerHandler(db)(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		}
+	}, ""))
 
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
