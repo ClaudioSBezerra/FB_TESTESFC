@@ -332,6 +332,15 @@ func main() {
 		}
 	}, ""))
 
+	// ── ERP Bridge (Phase 1: config + credenciais + test-connection) ─────────
+	// T-04-01: oracle_senha nunca retornada ao frontend (apenas *_set flag)
+	// T-04-03: test-connection usa só o DSN salvo da empresa (não host do corpo) — SSRF mitigado
+	// T-04-05: generate-api-key restrito a admin
+	http.HandleFunc("/api/erp-bridge/config",                  withAuth(handlers.ERPBridgeConfigHandler, ""))
+	http.HandleFunc("/api/erp-bridge/config/generate-api-key", withAuth(handlers.ERPBridgeGenerateAPIKeyHandler, "admin"))
+	http.HandleFunc("/api/erp-bridge/test-connection",         withAuth(handlers.ERPBridgeTestConnectionHandler, "")) // NOVO (D-14)
+	http.HandleFunc("/api/erp-bridge/credentials",             withDB(handlers.ERPBridgeCredentialsHandler)) // daemon futuro, X-API-Key
+
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
 
