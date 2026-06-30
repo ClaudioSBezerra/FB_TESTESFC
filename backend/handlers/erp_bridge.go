@@ -150,30 +150,67 @@ func ERPBridgeConfigHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// Atualiza credenciais individualmente se fornecidas
+			// Atualiza credenciais individualmente se fornecidas.
+			// Checar erro em cada UPDATE para não retornar 204 silenciando falhas (WR-07).
 			if req.FBTaxEmail != nil {
-				db.Exec(`UPDATE erp_bridge_config SET fbtax_email = $2 WHERE company_id = $1`, companyID, *req.FBTaxEmail)
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET fbtax_email = $2 WHERE company_id = $1`, companyID, *req.FBTaxEmail); err != nil {
+					log.Printf("ERPBridgeConfig PATCH fbtax_email error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar fbtax_email", http.StatusInternalServerError)
+					return
+				}
 			}
 			if req.FBTaxPassword != nil && *req.FBTaxPassword != "" {
-				if enc, encErr := EncryptField(*req.FBTaxPassword); encErr == nil {
-					db.Exec(`UPDATE erp_bridge_config SET fbtax_password = $2 WHERE company_id = $1`, companyID, enc)
+				enc, encErr := EncryptField(*req.FBTaxPassword)
+				if encErr != nil {
+					log.Printf("ERPBridgeConfig PATCH fbtax_password encrypt error (company %s): %v", companyID, encErr)
+					http.Error(w, "Erro ao criptografar fbtax_password", http.StatusInternalServerError)
+					return
+				}
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET fbtax_password = $2 WHERE company_id = $1`, companyID, enc); err != nil {
+					log.Printf("ERPBridgeConfig PATCH fbtax_password error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar fbtax_password", http.StatusInternalServerError)
+					return
 				}
 			}
 			if req.OracleUsuario != nil {
-				if enc, encErr := EncryptField(*req.OracleUsuario); encErr == nil {
-					db.Exec(`UPDATE erp_bridge_config SET oracle_usuario = $2 WHERE company_id = $1`, companyID, enc)
+				enc, encErr := EncryptField(*req.OracleUsuario)
+				if encErr != nil {
+					log.Printf("ERPBridgeConfig PATCH oracle_usuario encrypt error (company %s): %v", companyID, encErr)
+					http.Error(w, "Erro ao criptografar oracle_usuario", http.StatusInternalServerError)
+					return
+				}
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET oracle_usuario = $2 WHERE company_id = $1`, companyID, enc); err != nil {
+					log.Printf("ERPBridgeConfig PATCH oracle_usuario error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar oracle_usuario", http.StatusInternalServerError)
+					return
 				}
 			}
 			if req.OracleSenha != nil && *req.OracleSenha != "" {
-				if enc, encErr := EncryptField(*req.OracleSenha); encErr == nil {
-					db.Exec(`UPDATE erp_bridge_config SET oracle_senha = $2 WHERE company_id = $1`, companyID, enc)
+				enc, encErr := EncryptField(*req.OracleSenha)
+				if encErr != nil {
+					log.Printf("ERPBridgeConfig PATCH oracle_senha encrypt error (company %s): %v", companyID, encErr)
+					http.Error(w, "Erro ao criptografar oracle_senha", http.StatusInternalServerError)
+					return
+				}
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET oracle_senha = $2 WHERE company_id = $1`, companyID, enc); err != nil {
+					log.Printf("ERPBridgeConfig PATCH oracle_senha error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar oracle_senha", http.StatusInternalServerError)
+					return
 				}
 			}
 			if req.ErpType != nil {
-				db.Exec(`UPDATE erp_bridge_config SET erp_type = $2 WHERE company_id = $1`, companyID, *req.ErpType)
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET erp_type = $2 WHERE company_id = $1`, companyID, *req.ErpType); err != nil {
+					log.Printf("ERPBridgeConfig PATCH erp_type error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar erp_type", http.StatusInternalServerError)
+					return
+				}
 			}
 			if req.OracleDsn != nil {
-				db.Exec(`UPDATE erp_bridge_config SET oracle_dsn = $2 WHERE company_id = $1`, companyID, *req.OracleDsn)
+				if _, err := db.Exec(`UPDATE erp_bridge_config SET oracle_dsn = $2 WHERE company_id = $1`, companyID, *req.OracleDsn); err != nil {
+					log.Printf("ERPBridgeConfig PATCH oracle_dsn error (company %s): %v", companyID, err)
+					http.Error(w, "Erro ao salvar oracle_dsn", http.StatusInternalServerError)
+					return
+				}
 			}
 			w.WriteHeader(http.StatusNoContent)
 
