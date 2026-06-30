@@ -29,7 +29,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Usuário pode solicitar recuperação de senha e concluir o fluxo de redefinição (forgot/reset)
   4. Admin pode criar, editar e desativar usuários na tela de gestão herdada
   5. Ambiente Ferreira Costa está pré-configurado e o contexto de empresa é resolvido corretamente nas requisições de API
-**Plans**: TBD
+**Plans**: 5 plans (3 waves)
+Plans:
+- [ ] 01-01-PLAN.md — Fundação backend: go.mod enxuto, crypto/middleware/serviços, auth.go, migrações 001+004, main.go com runner (skeleton backend)
+- [ ] 01-02-PLAN.md — Shell frontend + infra Docker: AuthContext, páginas de auth, App.tsx, vite/Dockerfiles/docker-compose (Walking Skeleton: login + refresh)
+- [ ] 01-03-PLAN.md — Gestão backend: admin/environment/hierarchy/managers + migração 003 + rotas
+- [ ] 01-04-PLAN.md — ERP_BRIDGE backend: migração 002, erp_bridge.go + endpoint test-connection (go-ora) + rotas
+- [ ] 01-05-PLAN.md — Telas de gestão: AdminUsers/GestaoAmbiente/Managers/ERPBridge + botão Testar Conexão + navegação enxuta
 **UI hint**: yes
 
 ### Phase 2: Import Pipeline & Fiscal Execution
