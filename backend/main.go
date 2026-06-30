@@ -230,10 +230,8 @@ func main() {
 	// Validação JWT_SECRET — avisa em dev, fatal em prod
 	handlers.ValidateJWTSecret()
 
-	// Aviso de startup se ENCRYPTION_KEY ausente (Pitfall 4)
-	if os.Getenv("ENCRYPTION_KEY") == "" {
-		log.Println("AVISO: ENCRYPTION_KEY não configurada — credenciais Oracle usam JWT_SECRET como fallback. Configure ENCRYPTION_KEY no .env.")
-	}
+	// Validação ENCRYPTION_KEY — avisa/fatal se ausente em prod (CR-02)
+	handlers.ValidateEncryptionKey()
 
 	initDBAsync()
 

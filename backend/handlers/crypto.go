@@ -8,22 +8,23 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"log"
 	"os"
 )
 
 // getEncryptionKey derives a 32-byte AES-256 key from ENCRYPTION_KEY env var.
-// Falls back to JWT_SECRET only in dev (no DATABASE_URL). Fatals in production.
+// Falls back to JWT_SECRET only in dev (no DATABASE_URL). Fatals in production if neither is set.
 func getEncryptionKey() []byte {
 	key := os.Getenv("ENCRYPTION_KEY")
 	if key == "" {
 		if os.Getenv("DATABASE_URL") != "" {
-			// Production: ENCRYPTION_KEY must be set separately from JWT_SECRET
-			// to prevent compromise of RFB credentials if JWT is leaked.
+			// Produção: ENCRYPTION_KEY deve ser configurada separadamente do JWT_SECRET
+			// para evitar que um vazamento do JWT comprometa as credenciais Oracle.
 			if jwtSecret := os.Getenv("JWT_SECRET"); jwtSecret != "" {
-				// Allow fallback but log a loud warning
+				log.Println("SECURITY WARNING: ENCRYPTION_KEY não configurada em produção — credenciais Oracle estão usando JWT_SECRET como chave de criptografia. Configure ENCRYPTION_KEY imediatamente.")
 				key = jwtSecret
 			} else {
-				key = "super-secret-key-change-me-in-prod"
+				log.Fatal("FATAL: ENCRYPTION_KEY e JWT_SECRET não configuradas em produção — impossível criptografar credenciais Oracle.")
 			}
 		} else {
 			key = "super-secret-key-change-me-in-prod"
@@ -33,12 +34,15 @@ func getEncryptionKey() []byte {
 	return h[:]
 }
 
-// ValidateEncryptionKey warns if ENCRYPTION_KEY is not set separately from JWT_SECRET.
+// ValidateEncryptionKey emite aviso se ENCRYPTION_KEY não estiver configurada em produção.
+// Deve ser chamada no startup (main.go) para garantir visibilidade nos logs.
 func ValidateEncryptionKey() {
 	if os.Getenv("ENCRYPTION_KEY") == "" && os.Getenv("DATABASE_URL") != "" {
-		// Use log import from the package — already imported in auth.go
-		// This will be called from main.go ValidateSecrets()
-		_ = "ENCRYPTION_KEY not set — Oracle credentials use JWT_SECRET as fallback. Set ENCRYPTION_KEY for proper secret separation."
+		if os.Getenv("JWT_SECRET") != "" {
+			log.Println("SECURITY WARNING: ENCRYPTION_KEY não configurada em produção — credenciais Oracle estão usando JWT_SECRET como chave de criptografia. Configure ENCRYPTION_KEY imediatamente.")
+		} else {
+			log.Fatal("FATAL: ENCRYPTION_KEY e JWT_SECRET não configuradas em produção.")
+		}
 	}
 }
 
