@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Manager {
   id: string;
@@ -12,6 +13,7 @@ interface Manager {
 }
 
 export default function Managers() {
+  const { token, companyId } = useAuth();
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -20,10 +22,12 @@ export default function Managers() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchManagers = async () => {
+    // Aguardar token disponível para garantir que Authorization seja enviado (CR-07)
+    if (!token) return;
     try {
-      const companyId = localStorage.getItem('companyId');
       const response = await fetch('/api/managers', {
         headers: {
+          'Authorization': `Bearer ${token}`,
           'X-Company-ID': companyId || '',
         },
       });
@@ -40,16 +44,19 @@ export default function Managers() {
     }
   };
 
+  // Disparar fetchManagers quando o token estiver disponível (evita race condition CR-07)
   useEffect(() => {
-    fetchManagers();
-  }, []);
+    if (token) {
+      fetchManagers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 
     try {
-      const companyId = localStorage.getItem('companyId');
       const url = editingManager
         ? `/api/managers/${editingManager.id}`
         : '/api/managers/create';
@@ -60,6 +67,7 @@ export default function Managers() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
           'X-Company-ID': companyId || '',
         },
         body: JSON.stringify(formData),
@@ -94,10 +102,10 @@ export default function Managers() {
     if (!confirm('Tem certeza que deseja desativar este gestor?')) return;
 
     try {
-      const companyId = localStorage.getItem('companyId');
       const response = await fetch(`/api/managers/${id}`, {
         method: 'DELETE',
         headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
           'X-Company-ID': companyId || '',
         },
       });
