@@ -201,6 +201,11 @@ func PromoteUserHandler(db *sql.DB) http.HandlerFunc {
 
 		// Update logic
 		if req.Role != "" {
+			// Validar role para evitar valores arbitrários no banco (WR-03)
+			if req.Role != "admin" && req.Role != "user" {
+				http.Error(w, "Invalid role. Must be 'admin' or 'user'", http.StatusBadRequest)
+				return
+			}
 			_, err := db.Exec("UPDATE users SET role = $1 WHERE id = $2", req.Role, userID)
 			if err != nil {
 				http.Error(w, "Failed to update role", http.StatusInternalServerError)
