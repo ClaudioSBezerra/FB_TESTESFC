@@ -193,19 +193,47 @@ func DeleteEnvironmentHandler(db *sql.DB) http.HandlerFunc {
 func GetGroupsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		envID := r.URL.Query().Get("environment_id")
-		query := "SELECT id, environment_id, name, COALESCE(description, ''), created_at FROM enterprise_groups"
-		args := []interface{}{}
 
-		if envID != "" {
-			query += " WHERE environment_id = $1"
-			args = append(args, envID)
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+
+		envID := r.URL.Query().Get("environment_id")
+		var query string
+		var args []interface{}
+
+		if role == "admin" {
+			// Admin vê todos os grupos
+			query = "SELECT id, environment_id, name, COALESCE(description, ''), created_at FROM enterprise_groups"
+			if envID != "" {
+				query += " WHERE environment_id = $1"
+				args = append(args, envID)
+			}
+		} else {
+			// Usuários comuns só veem grupos dos seus ambientes (WR-04)
+			if envID != "" {
+				query = `SELECT eg.id, eg.environment_id, eg.name, COALESCE(eg.description, ''), eg.created_at
+					FROM enterprise_groups eg
+					JOIN user_environments ue ON ue.environment_id = eg.environment_id
+					WHERE ue.user_id = $1 AND eg.environment_id = $2`
+				args = append(args, userID, envID)
+			} else {
+				query = `SELECT eg.id, eg.environment_id, eg.name, COALESCE(eg.description, ''), eg.created_at
+					FROM enterprise_groups eg
+					JOIN user_environments ue ON ue.environment_id = eg.environment_id
+					WHERE ue.user_id = $1`
+				args = append(args, userID)
+			}
 		}
 		query += " ORDER BY name"
 
 		rows, err := db.Query(query, args...)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao buscar grupos", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -214,13 +242,13 @@ func GetGroupsHandler(db *sql.DB) http.HandlerFunc {
 		for rows.Next() {
 			var g EnterpriseGroup
 			if err := rows.Scan(&g.ID, &g.EnvironmentID, &g.Name, &g.Description, &g.CreatedAt); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, "Erro ao processar grupos", http.StatusInternalServerError)
 				return
 			}
 			groups = append(groups, g)
 		}
 		if err := rows.Err(); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao iterar grupos", http.StatusInternalServerError)
 			return
 		}
 
@@ -330,26 +358,57 @@ func DeleteGroupHandler(db *sql.DB) http.HandlerFunc {
 func GetCompaniesHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		groupID := r.URL.Query().Get("group_id")
-		query := `SELECT id, group_id, name,
-			COALESCE(trade_name, ''),
-			COALESCE(regime_tributario, 'nao_informado'),
-			COALESCE(inscricao_estadual, ''),
-			COALESCE(cnae_principal, ''),
-			COALESCE(segmento_economico, ''),
-			created_at
-		FROM companies`
-		args := []interface{}{}
 
-		if groupID != "" {
-			query += " WHERE group_id = $1"
-			args = append(args, groupID)
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
 		}
-		query += " ORDER BY name"
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+
+		groupID := r.URL.Query().Get("group_id")
+		var query string
+		var args []interface{}
+
+		colSelect := `c.id, c.group_id, c.name,
+			COALESCE(c.trade_name, ''),
+			COALESCE(c.regime_tributario, 'nao_informado'),
+			COALESCE(c.inscricao_estadual, ''),
+			COALESCE(c.cnae_principal, ''),
+			COALESCE(c.segmento_economico, ''),
+			c.created_at`
+
+		if role == "admin" {
+			// Admin vê todas as empresas
+			query = "SELECT " + colSelect + " FROM companies c"
+			if groupID != "" {
+				query += " WHERE c.group_id = $1"
+				args = append(args, groupID)
+			}
+		} else {
+			// Usuários comuns só veem empresas dos seus ambientes (WR-04)
+			if groupID != "" {
+				query = `SELECT ` + colSelect + `
+					FROM companies c
+					JOIN enterprise_groups eg ON c.group_id = eg.id
+					JOIN user_environments ue ON ue.environment_id = eg.environment_id
+					WHERE ue.user_id = $1 AND c.group_id = $2`
+				args = append(args, userID, groupID)
+			} else {
+				query = `SELECT ` + colSelect + `
+					FROM companies c
+					JOIN enterprise_groups eg ON c.group_id = eg.id
+					JOIN user_environments ue ON ue.environment_id = eg.environment_id
+					WHERE ue.user_id = $1`
+				args = append(args, userID)
+			}
+		}
+		query += " ORDER BY c.name"
 
 		rows, err := db.Query(query, args...)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao buscar empresas", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -362,13 +421,13 @@ func GetCompaniesHandler(db *sql.DB) http.HandlerFunc {
 				&c.InscricaoEstadual, &c.CNAEPrincipal, &c.SegmentoEconomico,
 				&c.CreatedAt,
 			); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, "Erro ao processar empresas", http.StatusInternalServerError)
 				return
 			}
 			companies = append(companies, c)
 		}
 		if err := rows.Err(); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao iterar empresas", http.StatusInternalServerError)
 			return
 		}
 
