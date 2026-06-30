@@ -13,7 +13,7 @@ O projeto parte de uma cópia seletiva dos módulos maduros do FB_APU04 (auth, g
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Inherited Stack** - Scaffold do projeto com módulos herdados do FB_APU04 rodando (auth, gestão Ferreira Costa, ERP_BRIDGE)
+- [x] **Phase 1: Foundation & Inherited Stack** - Scaffold do projeto com módulos herdados do FB_APU04 rodando (auth, gestão Ferreira Costa, ERP_BRIDGE) (completed 2026-06-30)
 - [ ] **Phase 2: Import Pipeline & Fiscal Execution** - Importação de XML, lookup de grupo fiscal no Oracle e execução do pacote fiscal persiste resultados
 - [ ] **Phase 3: Visual Comparison Screen** - Tela de comparação visual item a item (esperado vs. calculado) com divergências destacadas
 
@@ -40,7 +40,7 @@ Plans:
 - [x] 01-02-PLAN.md — Shell frontend + infra Docker: AuthContext, páginas de auth, App.tsx, vite/Dockerfiles/docker-compose (Walking Skeleton: login + refresh)
 - [x] 01-03-PLAN.md — Gestão backend: admin/environment/hierarchy/managers + migração 003 + rotas
 - [x] 01-04-PLAN.md — ERP_BRIDGE backend: migração 002, erp_bridge.go + endpoint test-connection (go-ora) + rotas
-- [ ] 01-05-PLAN.md — Telas de gestão: AdminUsers/GestaoAmbiente/Managers/ERPBridge + botão Testar Conexão + navegação enxuta
+- [x] 01-05-PLAN.md — Telas de gestão: AdminUsers/GestaoAmbiente/Managers/ERPBridge + botão Testar Conexão + navegação enxuta
 
 **UI hint**: yes
 
@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Inherited Stack | 4/5 | In Progress|  |
+| 1. Foundation & Inherited Stack | 5/5 | Complete   | 2026-06-30 |
 | 2. Import Pipeline & Fiscal Execution | 0/? | Not started | - |
 | 3. Visual Comparison Screen | 0/? | Not started | - |
