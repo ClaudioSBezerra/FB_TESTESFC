@@ -8,3 +8,5 @@ require (
 	github.com/lib/pq v1.12.3
 	golang.org/x/crypto v0.48.0
 )
+
+require github.com/sijms/go-ora/v2 v2.9.0
