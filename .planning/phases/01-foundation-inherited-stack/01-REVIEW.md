@@ -42,7 +42,17 @@ findings:
   warning: 8
   info: 5
   total: 20
-status: issues_found
+status: resolved
+resolution:
+  resolved_at: 2026-06-30
+  blockers_fixed: 7
+  warnings_fixed: 8
+  info_fixed: 2
+  info_deferred: 3
+  note: >-
+    Todos os 7 blockers e 8 warnings corrigidos via gsd-code-fixer (commits fix(01): CR-01..CR-07, WR-01..WR-08).
+    CR-01 (sanitização do erro do test-connection) e CR-02 (log de aviso ENCRYPTION_KEY) validados em runtime.
+    Info IN-01/IN-04/IN-05 deferidos como dívida de baixa prioridade (ver corpo).
 ---
 
 # Fase 01: Relatório de Code Review
