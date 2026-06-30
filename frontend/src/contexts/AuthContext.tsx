@@ -225,6 +225,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .finally(() => window.location.reload());
   };
 
+  // isAuthenticated baseado em !!token (só setado após refresh confirmar a sessão),
+  // não em !!user (que é restaurado do localStorage antes do refresh — WR-05).
+  // Isso evita que ProtectedRoute libere acesso com dados stale do localStorage
+  // enquanto o refresh ainda não completou.
   return (
     <AuthContext.Provider value={{
       user,
@@ -238,7 +242,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       login,
       logout,
       switchCompany,
-      isAuthenticated: !!user
+      isAuthenticated: !!token
     }}>
       {children}
     </AuthContext.Provider>
