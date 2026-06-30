@@ -1,0 +1,581 @@
+package handlers
+
+import (
+	"database/sql"
+	"encoding/json"
+	"log"
+	"net/http"
+
+	"github.com/golang-jwt/jwt/v5"
+)
+
+// Structures
+
+type Environment struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	CreatedAt   string `json:"created_at"`
+}
+
+type EnterpriseGroup struct {
+	ID            string `json:"id"`
+	EnvironmentID string `json:"environment_id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	CreatedAt     string `json:"created_at"`
+}
+
+// Company — adaptado para o schema do FB_TESTESFC (sem cnpj, cnae_secundario, municipio, incentivos_fiscais).
+// Essas colunas foram removidas/nunca criadas neste projeto (schema começa no estado final — migration 001).
+type Company struct {
+	ID                string `json:"id"`
+	GroupID           string `json:"group_id"`
+	Name              string `json:"name"`
+	TradeName         string `json:"trade_name"`
+	RegimeTributario  string `json:"regime_tributario"`
+	InscricaoEstadual string `json:"inscricao_estadual,omitempty"`
+	CNAEPrincipal     string `json:"cnae_principal,omitempty"`
+	SegmentoEconomico string `json:"segmento_economico,omitempty"`
+	CreatedAt         string `json:"created_at"`
+}
+
+// --- Environment Handlers ---
+
+func GetEnvironmentsHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+		if userID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		log.Printf("[GetEnvironments] User: %s, Role: %s", userID, role)
+
+		var rows *sql.Rows
+		var err error
+
+		if role == "admin" {
+			// Platform Admin sees all environments
+			rows, err = db.Query("SELECT id, name, COALESCE(description, ''), created_at FROM environments ORDER BY name")
+		} else {
+			// Regular users see only assigned environments
+			rows, err = db.Query(`
+				SELECT e.id, e.name, COALESCE(e.description, ''), e.created_at
+				FROM environments e
+				JOIN user_environments ue ON e.id = ue.environment_id
+				WHERE ue.user_id = $1
+				ORDER BY e.name
+			`, userID)
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var envs []Environment
+		for rows.Next() {
+			var e Environment
+			if err := rows.Scan(&e.ID, &e.Name, &e.Description, &e.CreatedAt); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			envs = append(envs, e)
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if envs == nil {
+			envs = []Environment{}
+		}
+		json.NewEncoder(w).Encode(envs)
+	}
+}
+
+func CreateEnvironmentHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var e Environment
+		if err := json.NewDecoder(r.Body).Decode(&e); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err := db.QueryRow(
+			"INSERT INTO environments (name, description) VALUES ($1, $2) RETURNING id, created_at",
+			e.Name, e.Description,
+		).Scan(&e.ID, &e.CreatedAt)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(e)
+	}
+}
+
+func UpdateEnvironmentHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var e Environment
+		if err := json.NewDecoder(r.Body).Decode(&e); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		_, err := db.Exec(
+			"UPDATE environments SET name = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+			e.Name, e.Description, e.ID,
+		)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(e)
+	}
+}
+
+func DeleteEnvironmentHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+
+		// Non-admin users may only delete environments they are assigned to.
+		if role != "admin" {
+			var count int
+			err := db.QueryRow(`
+				SELECT COUNT(*) FROM user_environments
+				WHERE user_id = $1 AND environment_id = $2
+			`, userID, id).Scan(&count)
+			if err != nil || count == 0 {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+
+		_, err := db.Exec("DELETE FROM environments WHERE id = $1", id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+// --- Group Handlers ---
+
+func GetGroupsHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		envID := r.URL.Query().Get("environment_id")
+		query := "SELECT id, environment_id, name, COALESCE(description, ''), created_at FROM enterprise_groups"
+		args := []interface{}{}
+
+		if envID != "" {
+			query += " WHERE environment_id = $1"
+			args = append(args, envID)
+		}
+		query += " ORDER BY name"
+
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var groups []EnterpriseGroup
+		for rows.Next() {
+			var g EnterpriseGroup
+			if err := rows.Scan(&g.ID, &g.EnvironmentID, &g.Name, &g.Description, &g.CreatedAt); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			groups = append(groups, g)
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if groups == nil {
+			groups = []EnterpriseGroup{}
+		}
+		json.NewEncoder(w).Encode(groups)
+	}
+}
+
+func CreateGroupHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var g EnterpriseGroup
+		if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err := db.QueryRow(
+			"INSERT INTO enterprise_groups (environment_id, name, description) VALUES ($1, $2, $3) RETURNING id, created_at",
+			g.EnvironmentID, g.Name, g.Description,
+		).Scan(&g.ID, &g.CreatedAt)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(g)
+	}
+}
+
+func UpdateGroupHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+		var body struct {
+			Name        string `json:"name"`
+			Description string `json:"description"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if body.Name == "" {
+			http.Error(w, "name is required", http.StatusBadRequest)
+			return
+		}
+		_, err := db.Exec(
+			"UPDATE enterprise_groups SET name=$1, description=$2 WHERE id=$3",
+			body.Name, body.Description, id,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func DeleteGroupHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+
+		// Non-admin users may only delete groups that belong to their accessible environments.
+		if role != "admin" {
+			var count int
+			err := db.QueryRow(`
+				SELECT COUNT(*) FROM enterprise_groups eg
+				JOIN user_environments ue ON ue.environment_id = eg.environment_id
+				WHERE eg.id = $1 AND ue.user_id = $2
+			`, id, userID).Scan(&count)
+			if err != nil || count == 0 {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+
+		_, err := db.Exec("DELETE FROM enterprise_groups WHERE id = $1", id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+// --- Company Handlers ---
+
+func GetCompaniesHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		groupID := r.URL.Query().Get("group_id")
+		query := `SELECT id, group_id, name,
+			COALESCE(trade_name, ''),
+			COALESCE(regime_tributario, 'nao_informado'),
+			COALESCE(inscricao_estadual, ''),
+			COALESCE(cnae_principal, ''),
+			COALESCE(segmento_economico, ''),
+			created_at
+		FROM companies`
+		args := []interface{}{}
+
+		if groupID != "" {
+			query += " WHERE group_id = $1"
+			args = append(args, groupID)
+		}
+		query += " ORDER BY name"
+
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var companies []Company
+		for rows.Next() {
+			var c Company
+			if err := rows.Scan(
+				&c.ID, &c.GroupID, &c.Name, &c.TradeName, &c.RegimeTributario,
+				&c.InscricaoEstadual, &c.CNAEPrincipal, &c.SegmentoEconomico,
+				&c.CreatedAt,
+			); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			companies = append(companies, c)
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if companies == nil {
+			companies = []Company{}
+		}
+		json.NewEncoder(w).Encode(companies)
+	}
+}
+
+func CreateCompanyHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var payload struct {
+			GroupID           string `json:"group_id"`
+			Name              string `json:"name"`
+			TradeName         string `json:"trade_name"`
+			RegimeTributario  string `json:"regime_tributario"`
+			InscricaoEstadual string `json:"inscricao_estadual"`
+			CNAEPrincipal     string `json:"cnae_principal"`
+			SegmentoEconomico string `json:"segmento_economico"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Basic validation
+		if payload.Name == "" || payload.GroupID == "" {
+			http.Error(w, "Missing required fields (name, group_id)", http.StatusBadRequest)
+			return
+		}
+
+		// Resolve owner: use group's environment owner (first user linked to the environment)
+		var ownerID *string
+		err := db.QueryRow(`
+			SELECT ue.user_id
+			FROM enterprise_groups eg
+			JOIN user_environments ue ON ue.environment_id = eg.environment_id
+			WHERE eg.id = $1
+			ORDER BY ue.created_at ASC
+			LIMIT 1
+		`, payload.GroupID).Scan(&ownerID)
+		if err != nil {
+			ownerID = nil // no owner found, leave NULL (still visible via group query)
+		}
+
+		regime := payload.RegimeTributario
+		if regime == "" {
+			regime = "lucro_real"
+		}
+
+		var c Company
+		err = db.QueryRow(`
+			INSERT INTO companies
+				(group_id, name, trade_name, owner_id, regime_tributario,
+				 inscricao_estadual, cnae_principal, segmento_economico)
+			VALUES
+				($1, $2, $3, $4, $5,
+				 NULLIF($6,''), NULLIF($7,''), NULLIF($8,''))
+			RETURNING id, created_at`,
+			payload.GroupID, payload.Name, payload.TradeName, ownerID, regime,
+			payload.InscricaoEstadual, payload.CNAEPrincipal, payload.SegmentoEconomico,
+		).Scan(&c.ID, &c.CreatedAt)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		c.GroupID = payload.GroupID
+		c.Name = payload.Name
+		c.TradeName = payload.TradeName
+		c.RegimeTributario = regime
+		c.InscricaoEstadual = payload.InscricaoEstadual
+		c.CNAEPrincipal = payload.CNAEPrincipal
+		c.SegmentoEconomico = payload.SegmentoEconomico
+
+		json.NewEncoder(w).Encode(c)
+	}
+}
+
+func UpdateCompanyHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodPut && r.Method != http.MethodPatch {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+
+		var payload struct {
+			RegimeTributario  string `json:"regime_tributario"`
+			InscricaoEstadual string `json:"inscricao_estadual"`
+			CNAEPrincipal     string `json:"cnae_principal"`
+			SegmentoEconomico string `json:"segmento_economico"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		allowed := map[string]bool{
+			"lucro_real": true, "lucro_presumido": true,
+			"simples_nacional": true, "nao_informado": true,
+		}
+		if !allowed[payload.RegimeTributario] {
+			http.Error(w, "regime_tributario inválido", http.StatusBadRequest)
+			return
+		}
+
+		// Ownership check: admin pode editar qualquer empresa; demais só as suas.
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+		if role != "admin" {
+			var hasAccess bool
+			err := db.QueryRow(`
+				SELECT EXISTS(
+					SELECT 1
+					FROM companies c
+					LEFT JOIN enterprise_groups eg ON c.group_id = eg.id
+					LEFT JOIN user_environments ue ON eg.environment_id = ue.environment_id
+					WHERE c.id = $1
+					  AND (c.owner_id = $2 OR ue.user_id = $2)
+				)`, id, userID).Scan(&hasAccess)
+			if err != nil || !hasAccess {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+
+		res, err := db.Exec(`
+			UPDATE companies SET
+				regime_tributario  = $1,
+				inscricao_estadual = NULLIF($2, ''),
+				cnae_principal     = NULLIF($3, ''),
+				segmento_economico = NULLIF($4, ''),
+				updated_at         = NOW()
+			WHERE id = $5`,
+			payload.RegimeTributario,
+			payload.InscricaoEstadual,
+			payload.CNAEPrincipal,
+			payload.SegmentoEconomico,
+			id,
+		)
+		if err != nil {
+			log.Printf("UpdateCompany error: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		n, err := res.RowsAffected()
+		if err == nil && n == 0 {
+			http.Error(w, "Company not found", http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func DeleteCompanyHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+
+		claims, ok := r.Context().Value(ClaimsKey).(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		userID, _ := claims["user_id"].(string)
+		role, _ := claims["role"].(string)
+
+		// Non-admin users may only delete companies that belong to their accessible environments.
+		if role != "admin" {
+			var count int
+			err := db.QueryRow(`
+				SELECT COUNT(*) FROM companies c
+				JOIN enterprise_groups eg ON eg.id = c.group_id
+				JOIN user_environments ue ON ue.environment_id = eg.environment_id
+				WHERE c.id = $1 AND ue.user_id = $2
+			`, id, userID).Scan(&count)
+			if err != nil || count == 0 {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+
+		_, err := db.Exec("DELETE FROM companies WHERE id = $1", id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
