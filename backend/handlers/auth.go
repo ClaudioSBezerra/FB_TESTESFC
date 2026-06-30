@@ -87,6 +87,10 @@ type refreshTokenData struct {
 	ExpiresAt time.Time
 }
 
+// LIMITAÇÃO CONHECIDA (WR-02): refreshTokenStore e tokenBlacklist são armazenados em memória.
+// Após restart do container, tokens revogados via logout voltam a ser válidos e tokens de
+// refresh são perdidos (forçando re-login). Para produção, persistir em Redis ou Postgres
+// com TTL automático via expires_at. Para Fase 1 (ferramenta interna mono-usuário), aceito.
 var (
 	refreshTokenStore sync.Map // string → refreshTokenData
 	tokenBlacklist    sync.Map // string(accessToken) → time.Time(expiry)
