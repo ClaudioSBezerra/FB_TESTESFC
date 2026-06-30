@@ -820,17 +820,21 @@ function AppLayout() {
 
 ---
 
-## Perguntas em Aberto
+## Perguntas em Aberto (RESOLVED)
+
+> Ambas as perguntas abaixo foram resolvidas para o escopo da Fase 1. Mantidas aqui com a resolução inline para rastreabilidade. Nenhuma bloqueia o planejamento ou a execução.
 
 1. **DSN Oracle para o teste de conexão**
    - O que sabemos: o campo `oracle_dsn` armazena o DSN/connection string. O driver `sijms/go-ora/v2` aceita URLs no formato `oracle://user:pass@host:port/service_name` ou strings no formato Oracle Easy Connect.
    - O que está incerto: qual formato exato a Ferreira Costa usa para o DSN da instância Oracle que hospeda FCCORP_BKP.
    - Recomendação: deixar o campo `oracle_dsn` livre para o usuário inserir; documentar ambos os formatos no tooltip da UI. Implementar fallback: tentar como URL Oracle; se falhar, tentar como Easy Connect.
+   - **RESOLVIDO:** Para a Fase 1 (test-connection apenas), a abordagem `oracle://user:pass@host:port/service_name` com fallback Easy Connect é suficiente — o formato exato do cliente Ferreira Costa é irrelevante nesta fase (a consulta real a prod/PRODB é Fase 2). O Plan 04 Task 1 já marca a sintaxe DSN como `[ASSUMED A1]` e instrui o executor a VERIFICAR o formato exato na doc do `go-ora/v2` durante a implementação. Sem bloqueio.
 
 2. **Versionamento do frontend no container**
    - O que sabemos: o FB_APU04 serve o frontend via Nginx no container `web` (porta 80, sem expor diretamente — usa Traefik para prod). Para dev local, usa `vite dev` na porta 3003.
    - O que está incerto: se o desenvolvedor quer usar `docker compose up` para tudo (incluindo frontend via Nginx) ou só para api+db, com Vite dev separado.
    - Recomendação: para Phase 1, incluir um serviço `web` no compose baseado na imagem Nginx (mesmo padrão do FB_APU04) mas também documentar que `cd frontend && npm run dev` funciona com proxy para 8085 para ciclos de desenvolvimento mais rápidos.
+   - **RESOLVIDO:** O Plan 02 Task 2 especifica explicitamente o serviço `web` Nginx no `docker-compose.yml` (porta Vite dev 3004 documentada como alternativa para ciclos rápidos). Decisão tomada conforme a recomendação. Sem bloqueio.
 
 ---
 
