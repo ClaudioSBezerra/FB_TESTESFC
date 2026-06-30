@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,13 +27,13 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Fetch backend version to confirm which build is running
-  useState(() => {
+  // Fetch backend version to confirm which build is running (IN-03: usar useEffect, não useState)
+  useEffect(() => {
     fetch("/api/health")
       .then(r => r.json())
       .then(d => setApiVersion(d.version ?? "?"))
       .catch(() => setApiVersion("offline"));
-  });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +55,7 @@ const Login = () => {
 
       login(data);
       toast.success("Login realizado com sucesso!");
-      navigate("/mercadorias");
+      navigate("/config/erp-bridge");
     } catch (error: any) {
       const msg = error.message || "Erro desconhecido";
       setErrorMsg(msg);
