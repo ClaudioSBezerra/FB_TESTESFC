@@ -145,7 +145,9 @@ func GenerateToken(userID, role string) (string, error) {
 
 func generateRefreshTokenString() string {
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand indisponível: " + err.Error())
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -774,7 +776,12 @@ func ForgotPasswordHandler(db *sql.DB) http.HandlerFunc {
 
 		// Generate token
 		tokenBytes := make([]byte, 32)
-		rand.Read(tokenBytes)
+		if _, err := rand.Read(tokenBytes); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode("Erro ao gerar token de recuperação")
+			return
+		}
 		token := hex.EncodeToString(tokenBytes)
 
 		expiresAt := time.Now().Add(1 * time.Hour)
