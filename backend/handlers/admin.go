@@ -330,6 +330,13 @@ func DeleteUserHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Impedir auto-deleção: admin não pode deletar a si mesmo (CR-04)
+		callerID := GetUserIDFromContext(r)
+		if callerID != "" && callerID == userID {
+			http.Error(w, "Cannot delete your own account", http.StatusForbidden)
+			return
+		}
+
 		_, err := db.Exec("DELETE FROM users WHERE id = $1", userID)
 		if err != nil {
 			http.Error(w, "Failed to delete user", http.StatusInternalServerError)
