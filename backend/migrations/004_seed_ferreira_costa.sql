@@ -54,11 +54,11 @@ BEGIN
         )
         RETURNING id INTO v_user_id;
     ELSE
+        -- NÃO atualizar password_hash para não sobrescrever senha já trocada (CR-03)
         UPDATE users SET
-            password_hash = '$2a$14$Opb3Wt02JbSQbMLm.OQF8ObYr4UZh5h7S8KzCj1PfwLyjes6vFluC',
-            role          = 'admin',
-            is_verified   = true,
-            full_name     = 'Claudio Bezerra (Admin)'
+            role        = 'admin',
+            is_verified = true,
+            full_name   = 'Claudio Bezerra (Admin)'
         WHERE email = 'claudio_bezerra@hotmail.com';
     END IF;
 
