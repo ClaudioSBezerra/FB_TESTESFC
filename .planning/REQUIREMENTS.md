@@ -9,22 +9,22 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation (Base herdada do FB_APU04)
 
-- [ ] **FND-01**: Projeto Go 1.24 + React/TS/Vite/Tailwind + Postgres inicializado com a stack do FB_APU04 (build e run locais funcionando)
-- [ ] **FND-02**: Apenas os módulos necessários são copiados do FB_APU04 (auth, gestão, ERP_BRIDGE, importação XML saída), sem os módulos fiscais não relacionados
-- [ ] **FND-03**: Migrações de banco Postgres para as tabelas reaproveitadas e novas executam de forma limpa em base zerada
+- [x] **FND-01**: Projeto Go 1.24 + React/TS/Vite/Tailwind + Postgres inicializado com a stack do FB_APU04 (build e run locais funcionando)
+- [x] **FND-02**: Apenas os módulos necessários são copiados do FB_APU04 (auth, gestão, ERP_BRIDGE, importação XML saída), sem os módulos fiscais não relacionados
+- [x] **FND-03**: Migrações de banco Postgres para as tabelas reaproveitadas e novas executam de forma limpa em base zerada
 
 ### Authentication (Autenticação)
 
-- [ ] **AUTH-01**: Usuário faz login com e-mail e senha e recebe sessão JWT
-- [ ] **AUTH-02**: Sessão do usuário persiste entre refreshes do navegador
-- [ ] **AUTH-03**: Usuário pode recuperar/redefinir senha (forgot/reset) reaproveitando o fluxo do FB_APU04
-- [ ] **AUTH-04**: Rotas da API são protegidas por middleware de autenticação
+- [x] **AUTH-01**: Usuário faz login com e-mail e senha e recebe sessão JWT
+- [x] **AUTH-02**: Sessão do usuário persiste entre refreshes do navegador
+- [x] **AUTH-03**: Usuário pode recuperar/redefinir senha (forgot/reset) reaproveitando o fluxo do FB_APU04
+- [x] **AUTH-04**: Rotas da API são protegidas por middleware de autenticação
 
 ### Tenancy (Gestão de ambiente/empresa/usuário — simplificada)
 
-- [ ] **TEN-01**: Existe ao menos um ambiente/empresa (Ferreira Costa) configurável com usuário administrador
+- [x] **TEN-01**: Existe ao menos um ambiente/empresa (Ferreira Costa) configurável com usuário administrador
 - [ ] **TEN-02**: Admin pode gerenciar usuários (criar/editar/desativar) reaproveitando a gestão do FB_APU04
-- [ ] **TEN-03**: Contexto de empresa (Ferreira Costa) é resolvido nas requisições para escopar os dados
+- [x] **TEN-03**: Contexto de empresa (Ferreira Costa) é resolvido nas requisições para escopar os dados
 
 ### XML Import (Importação de XMLs de saída)
 
@@ -83,16 +83,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
-| FND-03 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| TEN-01 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
+| FND-03 | Phase 1 | Complete |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| TEN-01 | Phase 1 | Complete |
 | TEN-02 | Phase 1 | Pending |
-| TEN-03 | Phase 1 | Pending |
+| TEN-03 | Phase 1 | Complete |
 | XML-01 | Phase 2 | Pending |
 | XML-02 | Phase 2 | Pending |
 | XML-03 | Phase 2 | Pending |
@@ -109,6 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMP-04 | Phase 3 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 24 total
 - Mapped to phases: 24 ✓
 - Unmapped: 0 ✓
