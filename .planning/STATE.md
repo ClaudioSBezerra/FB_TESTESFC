@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02 Walking Skeleton — frontend shell + Docker infra + login validado
-last_updated: "2026-06-30T21:00:50.088Z"
+stopped_at: Completed 01-03 Camada de Gestão (tenancy) — admin/hierarchy/managers
+last_updated: "2026-06-30T21:11:46.432Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 ## Current Position
 
 Phase: 01 (foundation-inherited-stack) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-06-30
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-foundation-inherited-stack P01-02 | 30min | 2 tasks | 78 files |
+| Phase 01-foundation-inherited-stack P01-03 | 12min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,7 @@ Recent decisions affecting current work:
 - v1 só Ferreira Costa — simplificar multi-tenant herdado
 - [Phase ?]: Token de acesso em memória React (não localStorage) + refresh token httpOnly SameSite=Strict — proteção XSS/CSRF no Walking Skeleton
 - [Phase ?]: 5 telas de gestão (GestaoAmbiente, Managers, AdminUsers, ERPBridgeConfig, ERPBridgeCredenciais) antecipadas do 01-05 para o 01-02 — escopo do 01-05 reduzido para menus/navegação e botão Testar Conexão
+- [Phase ?]: environment.go adaptado sem cnpj/cnae_secundario/municipio: schema 001 não tem essas colunas
 
 ### Pending Todos
 
@@ -87,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-30T21:00:50.084Z
-Stopped at: Completed 01-02 Walking Skeleton — frontend shell + Docker infra + login validado
+Last session: 2026-06-30T21:11:46.429Z
+Stopped at: Completed 01-03 Camada de Gestão (tenancy) — admin/hierarchy/managers
 Resume file: None

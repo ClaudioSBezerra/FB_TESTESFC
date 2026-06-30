@@ -38,7 +38,7 @@ Plans:
 
 - [x] 01-01-PLAN.md — Fundação backend: go.mod enxuto, crypto/middleware/serviços, auth.go, migrações 001+004, main.go com runner (skeleton backend)
 - [x] 01-02-PLAN.md — Shell frontend + infra Docker: AuthContext, páginas de auth, App.tsx, vite/Dockerfiles/docker-compose (Walking Skeleton: login + refresh)
-- [ ] 01-03-PLAN.md — Gestão backend: admin/environment/hierarchy/managers + migração 003 + rotas
+- [x] 01-03-PLAN.md — Gestão backend: admin/environment/hierarchy/managers + migração 003 + rotas
 - [ ] 01-04-PLAN.md — ERP_BRIDGE backend: migração 002, erp_bridge.go + endpoint test-connection (go-ora) + rotas
 - [ ] 01-05-PLAN.md — Telas de gestão: AdminUsers/GestaoAmbiente/Managers/ERPBridge + botão Testar Conexão + navegação enxuta
 
@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Inherited Stack | 2/5 | In Progress|  |
+| 1. Foundation & Inherited Stack | 3/5 | In Progress|  |
 | 2. Import Pipeline & Fiscal Execution | 0/? | Not started | - |
 | 3. Visual Comparison Screen | 0/? | Not started | - |

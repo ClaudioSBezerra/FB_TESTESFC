@@ -23,7 +23,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Tenancy (Gestão de ambiente/empresa/usuário — simplificada)
 
 - [x] **TEN-01**: Existe ao menos um ambiente/empresa (Ferreira Costa) configurável com usuário administrador
-- [ ] **TEN-02**: Admin pode gerenciar usuários (criar/editar/desativar) reaproveitando a gestão do FB_APU04
+- [x] **TEN-02**: Admin pode gerenciar usuários (criar/editar/desativar) reaproveitando a gestão do FB_APU04
 - [x] **TEN-03**: Contexto de empresa (Ferreira Costa) é resolvido nas requisições para escopar os dados
 
 ### XML Import (Importação de XMLs de saída)
@@ -91,7 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
 | TEN-01 | Phase 1 | Complete |
-| TEN-02 | Phase 1 | Pending |
+| TEN-02 | Phase 1 | Complete |
 | TEN-03 | Phase 1 | Complete |
 | XML-01 | Phase 2 | Pending |
 | XML-02 | Phase 2 | Pending |
