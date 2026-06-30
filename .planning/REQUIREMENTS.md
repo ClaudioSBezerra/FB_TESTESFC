@@ -83,13 +83,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (a preencher pelo roadmapper) | — | Pending |
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| TEN-01 | Phase 1 | Pending |
+| TEN-02 | Phase 1 | Pending |
+| TEN-03 | Phase 1 | Pending |
+| XML-01 | Phase 2 | Pending |
+| XML-02 | Phase 2 | Pending |
+| XML-03 | Phase 2 | Pending |
+| XML-04 | Phase 2 | Pending |
+| ERP-01 | Phase 2 | Pending |
+| ERP-02 | Phase 2 | Pending |
+| ERP-03 | Phase 2 | Pending |
+| FIS-01 | Phase 2 | Pending |
+| FIS-02 | Phase 2 | Pending |
+| FIS-03 | Phase 2 | Pending |
+| CMP-01 | Phase 3 | Pending |
+| CMP-02 | Phase 3 | Pending |
+| CMP-03 | Phase 3 | Pending |
+| CMP-04 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total
-- Mapped to phases: 0 (pré-roadmap)
-- Unmapped: 24 ⚠️ (será resolvido na criação do roadmap)
+- Mapped to phases: 24 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-30*
-*Last updated: 2026-06-30 after initialization*
+*Last updated: 2026-06-30 after roadmap creation*
