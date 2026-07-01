@@ -58,7 +58,12 @@ Plans:
   4. Sistema executa o script do pacote fiscal no FCCORP_BKP com os parâmetros do XML e o grupo fiscal, persiste os impostos calculados; falhas por item são exibidas sem abortar o lote inteiro
   5. Usuário configura as credenciais de conexão Oracle via tela ERP_BRIDGE herdada
 
-**Plans**: TBD
+**Plans**: 2 plans (2 waves)
+Plans:
+
+- [ ] 02-01-PLAN.md — Importação de XML: upload/parse/persistência (nfe_saidas + itens) e tela de consulta
+- [ ] 02-02-PLAN.md — Execução fiscal: lookup grupo fiscal (prod/PRODB) + pacote PL/SQL + persistência com status por item
+
 **UI hint**: yes
 
 ### Phase 3: Visual Comparison Screen
