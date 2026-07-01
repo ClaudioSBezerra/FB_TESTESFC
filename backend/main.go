@@ -241,25 +241,25 @@ func main() {
 	}
 
 	// ── Rotas de auth (sem autenticação) ──────────────────────────────────────
-	http.HandleFunc("/api/auth/register",        withDB(handlers.RegisterHandler))
-	http.HandleFunc("/api/auth/login",           withDB(handlers.LoginHandler))
+	http.HandleFunc("/api/auth/register", withDB(handlers.RegisterHandler))
+	http.HandleFunc("/api/auth/login", withDB(handlers.LoginHandler))
 	http.HandleFunc("/api/auth/forgot-password", withDB(handlers.ForgotPasswordHandler))
-	http.HandleFunc("/api/auth/reset-password",  withDB(handlers.ResetPasswordHandler))
-	http.HandleFunc("/api/auth/refresh",         withDB(handlers.RefreshHandler))
-	http.HandleFunc("/api/auth/logout",          withDB(handlers.LogoutHandler))
+	http.HandleFunc("/api/auth/reset-password", withDB(handlers.ResetPasswordHandler))
+	http.HandleFunc("/api/auth/refresh", withDB(handlers.RefreshHandler))
+	http.HandleFunc("/api/auth/logout", withDB(handlers.LogoutHandler))
 
 	// ── Rotas de auth (autenticadas) ──────────────────────────────────────────
-	http.HandleFunc("/api/auth/me",                withAuth(handlers.GetMeHandler, ""))
-	http.HandleFunc("/api/auth/change-password",   withAuth(handlers.ChangePasswordHandler, ""))
+	http.HandleFunc("/api/auth/me", withAuth(handlers.GetMeHandler, ""))
+	http.HandleFunc("/api/auth/change-password", withAuth(handlers.ChangePasswordHandler, ""))
 	http.HandleFunc("/api/auth/preferred-company", withAuth(handlers.SetPreferredCompanyHandler, ""))
-	http.HandleFunc("/api/user/companies",         withAuth(handlers.GetUserCompaniesHandler, ""))
-	http.HandleFunc("/api/user/hierarchy",         withAuth(handlers.GetUserHierarchyHandler, ""))
+	http.HandleFunc("/api/user/companies", withAuth(handlers.GetUserCompaniesHandler, ""))
+	http.HandleFunc("/api/user/hierarchy", withAuth(handlers.GetUserHierarchyHandler, ""))
 
 	// ── Rotas de admin (role=admin) ───────────────────────────────────────────
-	http.HandleFunc("/api/admin/users",          withAuth(handlers.ListUsersHandler, "admin"))
-	http.HandleFunc("/api/admin/users/create",   withAuth(handlers.CreateUserHandler, "admin"))
-	http.HandleFunc("/api/admin/users/promote",  withAuth(handlers.PromoteUserHandler, "admin"))
-	http.HandleFunc("/api/admin/users/delete",   withAuth(handlers.DeleteUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users", withAuth(handlers.ListUsersHandler, "admin"))
+	http.HandleFunc("/api/admin/users/create", withAuth(handlers.CreateUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users/promote", withAuth(handlers.PromoteUserHandler, "admin"))
+	http.HandleFunc("/api/admin/users/delete", withAuth(handlers.DeleteUserHandler, "admin"))
 	http.HandleFunc("/api/admin/users/reassign", withAuth(handlers.ReassignUserHandler, "admin"))
 
 	// ── Hierarquia ambiente/grupo/empresa (multi-method inline) ──────────────
@@ -315,7 +315,7 @@ func main() {
 	}, ""))
 
 	// ── Managers ──────────────────────────────────────────────────────────────
-	http.HandleFunc("/api/managers",        withAuth(handlers.ListManagersHandler, ""))
+	http.HandleFunc("/api/managers", withAuth(handlers.ListManagersHandler, ""))
 	http.HandleFunc("/api/managers/create", withAuth(handlers.CreateManagerHandler, ""))
 	http.HandleFunc("/api/managers/", withAuth(func(db *sql.DB) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -334,15 +334,23 @@ func main() {
 	// T-04-01: oracle_senha nunca retornada ao frontend (apenas *_set flag)
 	// T-04-03: test-connection usa só o DSN salvo da empresa (não host do corpo) — SSRF mitigado
 	// T-04-05: generate-api-key restrito a admin
-	http.HandleFunc("/api/erp-bridge/config",                  withAuth(handlers.ERPBridgeConfigHandler, ""))
+	http.HandleFunc("/api/erp-bridge/config", withAuth(handlers.ERPBridgeConfigHandler, ""))
 	http.HandleFunc("/api/erp-bridge/config/generate-api-key", withAuth(handlers.ERPBridgeGenerateAPIKeyHandler, "admin"))
-	http.HandleFunc("/api/erp-bridge/test-connection",         withAuth(handlers.ERPBridgeTestConnectionHandler, "")) // NOVO (D-14)
+	http.HandleFunc("/api/erp-bridge/test-connection", withAuth(handlers.ERPBridgeTestConnectionHandler, "")) // NOVO (D-14)
 	// DESATIVADO (auditoria de segurança 2026-07-01, T-04-06): ERPBridgeCredentialsHandler
 	// devolve credenciais Oracle em texto claro via X-API-Key, sem JWT e sem rate limit.
 	// D-14 escopou a Fase 1 a "infra + testar conexão" — o daemon consumidor deste endpoint
 	// ainda não existe. Reativar apenas quando uma fase futura construir esse daemon,
 	// com rate limiting e revisão de ameaça dedicada.
 	// http.HandleFunc("/api/erp-bridge/credentials", withDB(handlers.ERPBridgeCredentialsHandler))
+
+	// ── Import Pipeline (Phase 2: XMLs de NF-e de saída) ─────────────────────
+	// T-02-04: escopo por company_id resolvido via JWT (erpBridgeGetCompany) —
+	// nenhum handler aceita company_id arbitrário do cliente.
+	// T-02-05: todas as rotas exigem autenticação (withAuth, role vazia).
+	http.HandleFunc("/api/xml/upload", withAuth(handlers.XMLUploadHandler, ""))
+	http.HandleFunc("/api/nfe-saidas", withAuth(handlers.NFeSaidasListHandler, ""))
+	http.HandleFunc("/api/nfe-saidas/", withAuth(handlers.NFeSaidaDetailHandler, ""))
 
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
