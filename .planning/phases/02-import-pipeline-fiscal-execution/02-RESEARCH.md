@@ -1,8 +1,8 @@
 # Fase 2: Import Pipeline & Fiscal Execution — Pesquisa
 
-**Pesquisado em:** 2026-07-01
+**Pesquisado em:** 2026-07-01 (atualizado no mesmo dia com esclarecimentos do usuário sobre schema Oracle real)
 **Domínio:** Parsing de XML NFe (SEFAZ) + driver Oracle puro-Go (go-ora) para PL/SQL com Object Types + modelagem Postgres para comparação fiscal
-**Confiança:** MEDIUM (alto para stack herdada do FB_APU04; MEDIUM para a chamada Oracle via go-ora — ponto novo, não testado em nenhum dos dois repos)
+**Confiança:** HIGH (alto para stack herdada do FB_APU04; MEDIUM-HIGH para a chamada Oracle via go-ora — padrão claro, mas ainda não testado contra a instância real; ALTO para o lookup `prod`/`PRODB`, com schema real confirmado pelo usuário — ver Assumptions Log)
 
 ## Summary
 
@@ -358,39 +358,33 @@ func processSingleItem(ctx context.Context, oracleDB *sql.DB, pgDB *sql.DB, item
 **Deprecated/outdated:**
 - Nenhuma API do go-ora foi deprecada que afete esta fase.
 
-## Assumptions Log
+## Assumptions Log (RESOLVED)
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|----------------|
-| A1 | O schema exato das tabelas `prod`/`PRODB` (nomes de coluna, tipo de chave do produto, como se relaciona com `cProd`/`NCM` do XML) não foi confirmado — nenhum SQL ou DDL dessas tabelas foi encontrado no FB_APU04 nem fornecido pelo usuário até o momento desta pesquisa | Standard Stack / Architecture Patterns (lookup de grupo fiscal) | Alto — sem o schema real, o handler de lookup não pode ser implementado; planner deve incluir tarefa de descoberta de schema (ex.: `DESCRIBE prod`, `DESCRIBE PRODB` via sqlplus ou consulta a `ALL_TAB_COLUMNS`) como primeiro passo executável, ou tratar como bloqueador para checkpoint humano |
-| A2 | `pCodigoGrupoFiscal` é obtido inteiramente do lookup `prod`/`PRODB` e nenhum outro parâmetro de entrada da função depende de uma segunda tabela Oracle não mapeada | Perguntas a Responder / Architecture | Médio — se outros parâmetros (ex.: `pTipoCentroFiscal`, `pTipoContribuinte`) também exigirem lookup em tabelas ainda não identificadas, o escopo de "quais tabelas Oracle são consultadas" cresce além do estimado |
-| A3 | O acesso à função `calcula_imposto_produto` é de fato somente leitura (sem INSERT/UPDATE dentro do pacote) — não foi possível inspecionar o corpo da function/package (`PKG_FISCAL_FCTAX`), apenas seu contrato de chamada externo (script de teste) | Security Domain | Médio-Alto — se a function tiver efeitos colaterais de escrita (ex.: log de auditoria em tabela própria do FCCORP_BKP), isso viola a constraint de "acesso somente leitura" do projeto; deve ser confirmado com o usuário/DBA antes de considerar a integração "segura por design" |
-| A4 | O formato de conexão Oracle (Easy Connect ou DSN completo) já configurado na Fase 1 para `erp_bridge_config` é suficiente para acessar tanto `prod`/`PRODB` quanto `FCCORP_BKP` sem credenciais/grants adicionais — assume-se que o usuário Oracle configurado tem `SELECT` e `EXECUTE` (para o pacote) nas três referências, mas isso não foi verificado nesta pesquisa | Perguntas a Responder (#3) | Alto — se o usuário Oracle configurado não tiver `EXECUTE` no pacote `PKG_FISCAL_FCTAX` ou `SELECT` em `prod`/`PRODB` (por estarem em outro schema/owner), a chamada falhará com `ORA-00942` ou `ORA-01031`, exigindo grants adicionais fora do controle desta fase |
-| A5 | O nome do "owner"/schema onde `PKG_FISCAL_FCTAX` está definido não foi confirmado — o script de teste não indica o schema explicitamente (pode estar no schema do usuário de conexão ou em outro, exigindo qualificação `SCHEMA.PKG_FISCAL_FCTAX.calcula_imposto_produto` ou grant de `EXECUTE` + sinônimo público) | Code Examples / Architecture | Médio — se o pacote estiver em outro schema sem sinônimo público, a chamada precisa ser qualificada; deve ser confirmado no primeiro teste de conexão real |
+> Todas as assunções abaixo foram resolvidas diretamente pelo usuário em 2026-07-01, com acesso real ao Oracle da Ferreira Costa. Mantidas aqui com a resolução inline para rastreabilidade. Nenhuma bloqueia o planejamento.
 
-**Se esta tabela estivesse vazia:** não é o caso — há assunções significativas de schema/permissão Oracle que precisam de confirmação do usuário/DBA antes ou durante a execução da fase.
+| # | Claim | Section | Risk if Wrong | Resolução |
+|---|-------|---------|----------------|-----------|
+| A1 | Schema exato de `prod`/`PRODB` não confirmado | Standard Stack / Architecture Patterns | Alto | **RESOLVIDO.** Usuário forneceu a query real: `SELECT pb.cod_empresa, pb.codigo, pb.grupo_fiscal, p.especial origem, p.ncm FROM prodb pb, prod p WHERE p.codigo = pb.codigo`. Chave de junção: `codigo` (código do produto — mapeia do `cProd` do XML). `prodb` tem `grupo_fiscal` (= `pCodigoGrupoFiscal`) e `cod_empresa` (ver A6 abaixo). `prod` tem `especial` (aliás "origem", provável fonte de `pOrigemProduto`) e `ncm`. |
+| A2 | `pCodigoGrupoFiscal` vem só de `prod`/`PRODB`, nenhum outro param depende de tabela não mapeada | Perguntas a Responder / Architecture | Médio | Ainda válido como assunção de trabalho — a query fornecida cobre `pCodigoGrupoFiscal`; demais parâmetros (UF, CNPJ, tipo contribuinte etc.) vêm do XML/config, não de novas tabelas Oracle identificadas nesta rodada. |
+| A3 | Função `calcula_imposto_produto` é somente leitura, sem efeito colateral de escrita | Security Domain | Médio-Alto | **RESOLVIDO.** Usuário confirmou: "só retorna" — função pura, sem INSERT/UPDATE interno. Constraint de somente-leitura do projeto está preservada. |
+| A4 | Usuário Oracle já configurado (Fase 1) tem `SELECT`/`EXECUTE` necessários em `prod`/`PRODB`/pacote | Perguntas a Responder (#3) | Alto | **RESOLVIDO.** Usuário confirmou: "tem permissão" — as credenciais já cadastradas em `erp_bridge_config` (Fase 1) são suficientes, sem grants adicionais necessários. |
+| A5 | Schema/owner de `PKG_FISCAL_FCTAX` não confirmado | Code Examples / Architecture | Médio | **RESOLVIDO.** Usuário confirmou que é o mesmo schema/usuário já configurado no ERP_BRIDGE — chamada sem necessidade de qualificação `SCHEMA.` explícita. |
+| A6 (nova) | `prodb.cod_empresa` — como a aplicação determina o valor correto para a Ferreira Costa | Architecture / Proposta de Modelagem | Alto | **RESOLVIDO.** Não existe tabela de mapeamento no Oracle nem é necessário criar uma. `cod_empresa` é um valor fixo e pequeno por filial/UF, informado diretamente pelo usuário: exemplos concretos **`2` = filial Recife/PE** e **`1` = filial Garanhuns/PE**. A aplicação deve resolver esse valor a partir da UF de origem (`pUFOrigem`, já derivado do XML) via um mapeamento pequeno e estático no código Go (ex.: `map[string]int{"PE-RECIFE": 2, "PE-GARANHUNS": 1}` ou equivalente, chave exata a definir pelo planner/executor a partir do campo disponível no XML — provavelmente `emit.CNPJ` ou um código de filial, já que duas filiais podem compartilhar a mesma UF "PE"). Não requer nova tabela Postgres nem tela de administração — é constante de aplicação, extensível depois se novas filiais forem adicionadas. |
 
-## Open Questions
+**Se esta tabela estivesse vazia:** não é o caso — havia assunções significativas de schema/permissão Oracle, todas resolvidas nesta rodada de esclarecimento com o usuário.
 
-1. **Estrutura real das tabelas `prod`/`PRODB`**
-   - O que sabemos: PROJECT.md confirma que ambas ficam na mesma instância Oracle do ERP_BRIDGE; o objetivo é obter o `pCodigoGrupoFiscal` a partir do código do produto do XML (`cProd`/`NCM`).
-   - O que é incerto: nomes de coluna exatos, se `prod` e `PRODB` precisam de JOIN, e qual campo do XML (`cProd` vs `NCM` vs outro código interno) é a chave de busca correta.
-   - Recomendação: antes de planejar as tarefas de lookup, executar (ou pedir ao usuário/DBA que execute) uma consulta de descoberta (`SELECT * FROM prod WHERE ROWNUM <= 5` e `DESCRIBE prod`/`PRODB`) usando as credenciais já configuradas na Fase 1, e usar o produto de exemplo do script de teste (`pProduto=478934`, grupo fiscal esperado `100`) como caso de validação ponta a ponta.
+## Open Questions (RESOLVED)
 
-2. **Schema/owner do pacote `PKG_FISCAL_FCTAX` e grants do usuário Oracle configurado**
-   - O que sabemos: a chamada funciona no PL/SQL Developer do usuário (provavelmente com um usuário Oracle mais privilegiado que o configurado para a aplicação).
-   - O que é incerto: se o usuário Oracle já cadastrado em `erp_bridge_config` (Fase 1) tem `EXECUTE` no pacote e `SELECT` nas tabelas `prod`/`PRODB`/tabelas internas do `FCCORP_BKP` que o pacote referencia internamente.
-   - Recomendação: primeiro teste real de chamada deve ser tratado como um `checkpoint:human-verify` — se falhar por permissão, é um bloqueador de infraestrutura Oracle, não um bug de código.
+1. **Estrutura real das tabelas `prod`/`PRODB`** — **RESOLVIDO** (ver A1 acima). Query de referência: `SELECT pb.grupo_fiscal, p.especial AS origem, p.ncm FROM prodb pb, prod p WHERE p.codigo = pb.codigo AND pb.codigo = :codigoProduto AND pb.cod_empresa = :codEmpresa` — o filtro por `cod_empresa` é OBRIGATÓRIO (ver A6) para não retornar múltiplas linhas/grupo fiscal errado quando o mesmo `codigo` de produto existe para mais de uma filial.
 
-3. **Efeitos colaterais de escrita dentro de `calcula_imposto_produto`**
-   - O que sabemos: o contrato externo (parâmetros + retorno) sugere uma função de cálculo pura.
-   - O que é incerto: o corpo da function/package não foi (e não deve ser) inspecionado nesta pesquisa — não temos acesso de leitura ao código-fonte PL/SQL do pacote em si, apenas ao contrato de chamada.
-   - Recomendação: perguntar diretamente ao usuário/DBA responsável pelo `FCCORP_BKP` se a função tem efeitos colaterais de escrita (log de auditoria, sequence, etc.) antes de assumir que repetidas chamadas de teste são 100% inócuas.
+2. **Schema/owner do pacote `PKG_FISCAL_FCTAX` e grants** — **RESOLVIDO** (ver A4/A5 acima). Mesmo usuário/schema já configurado na Fase 1, sem qualificação adicional, sem grants pendentes.
+
+3. **Efeitos colaterais de escrita dentro de `calcula_imposto_produto`** — **RESOLVIDO** (ver A3 acima). Função pura, apenas retorna.
 
 4. **Volume esperado de itens por lote/nota — dimensionamento de concorrência**
-   - O que sabemos: XML-01 permite múltiplos XMLs por importação; cada XML pode ter dezenas de itens.
-   - O que é incerto: ordem de grandeza esperada (dezenas, centenas, milhares de itens por sessão de teste) — afeta a escolha de processamento síncrono vs. assíncrono/fila e o tamanho do semáforo de concorrência Oracle.
-   - Recomendação: assumir processamento síncrono item-a-item com concorrência limitada (5-10) como MVP suficiente para volumes de teste manual; revisar se o uso real mostrar necessidade de fila assíncrona (fora do escopo desta fase conforme Out of Scope do PROJECT.md).
+   - Ainda em aberto (não bloqueia o planejamento): nenhuma informação nova do usuário sobre volume esperado. Mantida a recomendação original: processamento síncrono item-a-item com concorrência limitada (5-10) como MVP suficiente para volumes de teste manual; revisar se o uso real mostrar necessidade de fila assíncrona (fora do escopo desta fase).
+
+5. **(Nova) Como resolver `cod_empresa` a partir do XML por filial** — parcialmente aberto: o usuário confirmou os valores (`2`=Recife/PE, `1`=Garanhuns/PE) e que basta passar o parâmetro, sem tabela nova. Falta apenas confirmar, durante o planejamento/execução, QUAL campo do XML (CNPJ emitente, código de filial, ou UF+outro discriminador) deve ser usado como chave para escolher entre os valores fixos — deixado como decisão de implementação (Claude's Discretion) para o planner, com base no XML de exemplo disponível durante a execução.
 
 ## Environment Availability
 
@@ -534,9 +528,8 @@ CREATE INDEX IF NOT EXISTS idx_fiscal_execution_nfe_item ON fiscal_execution_ite
 **Confidence breakdown:**
 - Standard stack (parsing XML, driver Oracle): HIGH — código real do FB_APU04 lido diretamente + versão do driver confirmada via proxy.golang.org oficial
 - Architecture (bloco PL/SQL anônimo com OUT escalares): MEDIUM — inferido combinando o contrato do script de teste (fonte primária) com documentação oficial do go-ora sobre OUT parameters; **não testado nesta pesquisa contra uma instância Oracle real** — validar no primeiro plano de execução com um teste de conexão real antes de assumir a implementação completa
-- Lookup de grupo fiscal (`prod`/`PRODB`): LOW — nenhum schema real dessas tabelas foi encontrado em nenhum dos repos; tratado como Open Question / Assumption A1, não como fato pesquisado
+- Lookup de grupo fiscal (`prod`/`PRODB`): HIGH — schema e query de junção reais fornecidos pelo usuário com acesso Oracle direto em 2026-07-01 (ver Assumptions Log, A1/A6 resolvidas); falta apenas confirmar, durante a execução, qual campo do XML deriva `cod_empresa` por filial (Open Question #5)
 - Pitfalls: MEDIUM-HIGH — pitfalls 1-3 fundamentados em evidência direta (script de teste + doc Oracle); pitfalls 4-5 são boas práticas gerais de engenharia, não específicas desta integração
 
 **Research date:** 2026-07-01
-**Valid until:** 30 dias para a parte de stack/parsing (estável); a parte de integração Oracle real deve ser **revalidada no primeiro teste de conexão efetivo** — esta pesquisa não pôde validar contra uma instância Oracle real (ambiente de pesquisa sem acesso a Oracle/sqlplus)
-</content>
+**Valid until:** 30 dias para a parte de stack/parsing (estável); a parte de integração Oracle real deve ser **revalidada no primeiro teste de conexão efetivo** — o schema de `prod`/`PRODB` e as permissões já foram confirmados pelo usuário nesta rodada, restando validar apenas a execução real do bloco PL/SQL contra a instância Oracle.
