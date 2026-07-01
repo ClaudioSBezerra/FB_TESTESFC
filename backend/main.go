@@ -337,7 +337,12 @@ func main() {
 	http.HandleFunc("/api/erp-bridge/config",                  withAuth(handlers.ERPBridgeConfigHandler, ""))
 	http.HandleFunc("/api/erp-bridge/config/generate-api-key", withAuth(handlers.ERPBridgeGenerateAPIKeyHandler, "admin"))
 	http.HandleFunc("/api/erp-bridge/test-connection",         withAuth(handlers.ERPBridgeTestConnectionHandler, "")) // NOVO (D-14)
-	http.HandleFunc("/api/erp-bridge/credentials",             withDB(handlers.ERPBridgeCredentialsHandler)) // daemon futuro, X-API-Key
+	// DESATIVADO (auditoria de segurança 2026-07-01, T-04-06): ERPBridgeCredentialsHandler
+	// devolve credenciais Oracle em texto claro via X-API-Key, sem JWT e sem rate limit.
+	// D-14 escopou a Fase 1 a "infra + testar conexão" — o daemon consumidor deste endpoint
+	// ainda não existe. Reativar apenas quando uma fase futura construir esse daemon,
+	// com rate limiting e revisão de ameaça dedicada.
+	// http.HandleFunc("/api/erp-bridge/credentials", withDB(handlers.ERPBridgeCredentialsHandler))
 
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
