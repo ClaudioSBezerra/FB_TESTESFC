@@ -75,7 +75,8 @@ Each task was committed atomically:
 1. **Task 1: Migração 008 + oracle_fiscal.go** - `dda4c70` (feat)
 2. **Task 2: fiscal_group_lookup.go + fiscal_execution.go + rota** - `72d6a9c` (feat)
 3. **Task 3: Badges de status + botão "Executar cálculo fiscal"** - `6865455` (feat)
-4. **Checkpoint: Verificação do pipeline de execução fiscal** - **NÃO EXECUTADO** (gate="blocking", requer Oracle real — ver "Next Phase Readiness")
+4. **Checkpoint: Verificação do pipeline de execução fiscal** - **APROVADO** contra Oracle real (ver "Next Phase Readiness")
+5. **Fix pós-checkpoint: binds OUT string + tipos IdRegraCalculo\*** - `50773a8` (fix)
 
 **Plan metadata:** (este commit) `docs: complete plan`
 
@@ -150,18 +151,25 @@ None - nenhuma configuração de serviço externo nova (reaproveita `erp_bridge_
 
 ## Next Phase Readiness
 
-**CHECKPOINT HUMANO PENDENTE (bloqueante) — não é seguro encerrar a Fase 2 sem executá-lo.** Este ambiente de execução não tem acesso a uma instância Oracle real (prod/PRODB/FCCORP_BKP) nem a um XML real de venda da Ferreira Costa, então o pipeline de lookup + execução fiscal **não foi verificado contra o Oracle real**. O usuário precisa, com as credenciais reais da Ferreira Costa:
+**CHECKPOINT HUMANO APROVADO em 2026-07-01**, com Oracle real (Ferreira Costa, DSN `10.131.1.118:1521/FCCORP`, usuário `fcosta`) e um XML sintético estruturalmente válido (sem XML real de venda disponível, mas com CNPJ real da filial Recife/PE — `10230480001536` — e produto real com grupo fiscal configurado — código `360`):
 
-1. Confirmar que "Testar Conexão" (Configurações → Credenciais ERP) retorna sucesso.
-2. Subir `docker compose up --build --force-recreate` e confirmar nos logs a execução das migrações 008 e 009.
-3. Importar (ou usar uma nota já importada) e clicar "Executar cálculo fiscal" em "Notas Importadas".
-4. Confirmar o toast com o resumo e os badges de status (verde/âmbar/vermelho) por item, incluindo que um item com problema não impede os demais.
-5. **Confirmar/completar `codEmpresaPorCNPJRaiz`** em `backend/handlers/fiscal_group_lookup.go`: a raiz de CNPJ da filial Garanhuns/PE (`cod_empresa=1`) ainda não está mapeada — sem ela, notas dessa filial retornam erro explícito por item. Adicionar a raiz confirmada assim que validada contra o Oracle real.
-6. Revisar os defaults documentados em `backend/handlers/fiscal_execution.go` (`defaultTipoContribuinte`, `defaultTipoCentroFiscal`, `defaultIndicadorServico`, `defaultFornecedorSimplesNacional`) contra o comportamento real do pacote fiscal — ajustar se os valores calculados divergirem do esperado por causa desses defaults.
-7. Confirmar que nenhuma mensagem de erro exposta na UI vaza DSN/usuário/senha Oracle.
+1. ✅ "Testar Conexão" (Configurações → Credenciais ERP) retornou sucesso contra o Oracle real.
+2. ✅ `docker compose up --build --force-recreate` — migrações 008 e 009 executadas limpo.
+3. ✅ "Executar cálculo fiscal" rodado via API contra a nota de teste — resposta `{"total":2,"ok":1,"sem_grupo_fiscal":1,"error":0}`.
+4. ✅ Item com produto real (360) retornou `status=ok` com os ~88 campos do pacote fiscal persistidos em `fiscal_execution_items.full_result` (bloco clássico + Reforma Tributária/IBS/CBS); item com produto fictício (PROD002) retornou `sem_grupo_fiscal` com mensagem clara — **isolamento por item confirmado**, nenhum erro abortou o lote.
+5. **Dois bugs de binding encontrados e corrigidos nesta sessão** (só apareciam contra o Oracle real, ver commit `50773a8`):
+   - `sql.Out` genérico do `database/sql` passa `size=0` ao driver go-ora para binds OUT de string → `MaxLen=0` → `ORA-06502 buffer too small`. Corrigido com `go_ora.Out{Dest, Size: 4000}` (tipo nativo do driver) para todos os campos string do resultado.
+   - `IdRegraCalculoIcms/PisCofins/Ipi/Ibs/Cbs` foram assumidos como `NUMBER` (float64) pelo nome do campo — são `VARCHAR2` no objeto real (ex: `"IVA_N_FC01PEPE1SNVRJNE6811810030002IC61"`) → `ORA-06502 character to number conversion error`. Corrigidos para `string`.
+6. `cod_empresa` da filial Recife/PE (`10230480` → `2`) **confirmado correto** contra o Oracle real.
+7. Nenhuma mensagem de erro exposta ao cliente vazou DSN/usuário/senha Oracle durante os testes (inclusive nos dois bugs acima, cujo erro completo só apareceu em `docker compose logs`, nunca na resposta HTTP).
 
-Após esse checkpoint ser aprovado (ou os ajustes necessários serem aplicados), a Fase 2 está pronta para a Fase 3 (tela de comparação item a item, esperado-vs-calculado), que consumirá `fiscal_execution_items` como a fonte do valor calculado.
+**Pendências que sobrevivem ao checkpoint (não bloqueiam Fase 3, mas precisam de acompanhamento):**
+- `codEmpresaPorCNPJRaiz` (`backend/handlers/fiscal_group_lookup.go`): só Recife/PE está mapeada. Garanhuns/PE (`cod_empresa=1`) continua sem confirmação — notas dessa filial retornam erro explícito por item até ser adicionada.
+- Defaults de `pTipoContribuinte`/`pTipoCentroFiscal`/`pIndicadorServico`/`FornecedorSimplesNacional`/`pAliquotaSimplesNacional` em `fiscal_execution.go` ainda não foram validados contra um caso real de cada variação (Simples Nacional, prestação de serviço, etc.) — o teste realizado cobriu apenas o caminho "normal" (não-Simples, não-serviço). A comparação da Fase 3 vai expor rapidamente qualquer default incorreto quando dados reais divergentes aparecerem.
+- Teste foi feito com XML sintético (não uma NF-e real de venda) — os valores de entrada (preço, desconto) são fictícios; o pacote aceitou e calculou normalmente, mas vale reimportar com uma nota real assim que disponível.
+
+A Fase 2 está pronta para a Fase 3 (tela de comparação item a item, esperado-vs-calculado), que consumirá `fiscal_execution_items` como a fonte do valor calculado.
 
 ---
 *Phase: 02-import-pipeline-fiscal-execution*
-*Completed: 2026-07-01 (código completo; checkpoint humano com Oracle real pendente)*
+*Completed: 2026-07-01 (checkpoint humano aprovado contra Oracle real)*
