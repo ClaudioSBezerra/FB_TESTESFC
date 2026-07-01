@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 01-04 ERP_BRIDGE backend — go-ora/v2 + handler erp_bridge + endpoint test-connection + rotas
-last_updated: "2026-06-30T21:43:08.330Z"
-last_activity: 2026-06-30
+status: blocked-checkpoint
+stopped_at: "02-02 código completo (3/4 tasks, commits dda4c70/72d6a9c/6865455) — checkpoint humano bloqueante pendente: requer Oracle real (prod/PRODB/FCCORP_BKP), não disponível neste ambiente."
+last_updated: "2026-07-01T21:50:00.000Z"
+last_activity: 2026-07-01 -- 02-02 code complete, awaiting real-Oracle checkpoint
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 33
+  total_plans: 7
+  completed_plans: 6
+  percent: 47
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-30)
 
 **Core value:** Tela que compara, item a item e imposto a imposto, o valor esperado (do XML real) vs. o calculado pelo pacote fiscal (script no FCCORP_BKP), destacando divergências.
-**Current focus:** Phase 01 — foundation-inherited-stack
+**Current focus:** Phase 02 — import-pipeline-fiscal-execution
 
 ## Current Position
 
-Phase: 01 (foundation-inherited-stack) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-06-30
+Phase: 02 (import-pipeline-fiscal-execution) — BLOCKED ON CHECKPOINT
+Plan: 2 of 2 (código completo, checkpoint humano com Oracle real pendente)
+Status: 02-02 aguardando verificação com Oracle real (prod/PRODB/FCCORP_BKP) e XML real da Ferreira Costa
+Last activity: 2026-07-01
 
-Progress: [████████░░] 80%
+Progress: [██████░░░░] 47%
 
 ## Performance Metrics
 
@@ -78,7 +78,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Script do pacote fiscal ainda não foi fornecido pelo usuário; formato exato (SQL puro vs. procedure PL/SQL) pendente de confirmação. Afeta Phase 2 (FIS-01).
+- **Checkpoint humano bloqueante do 02-02 (execução fiscal)**: código completo e commitado (dda4c70/72d6a9c/6865455), mas não verificado contra Oracle real (prod/PRODB/FCCORP_BKP) nem XML real da Ferreira Costa — este ambiente não tem essas conexões. Precisa do usuário: (1) testar conexão Oracle real, (2) subir com `--force-recreate`, (3) rodar "Executar cálculo fiscal" numa nota real, (4) confirmar `codEmpresaPorCNPJRaiz` da filial Garanhuns/PE (só Recife/PE está mapeada, a partir do CNPJ de exemplo do script de teste), (5) revisar defaults de parâmetros sem fonte persistida (`pTipoContribuinte`, `pTipoCentroFiscal`, `pIndicadorServico`, `FornecedorSimplesNacional`) contra o comportamento real do pacote. Detalhe completo em `02-02-SUMMARY.md` → "Next Phase Readiness".
 
 ## Deferred Items
 
@@ -90,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-30T21:43:08.327Z
-Stopped at: Completed 01-04 ERP_BRIDGE backend — go-ora/v2 + handler erp_bridge + endpoint test-connection + rotas
+Last session: 2026-07-01T21:50:00.000Z
+Stopped at: 02-02 (execução fiscal) código completo e commitado — checkpoint humano bloqueante pendente (requer Oracle real + XML real da Ferreira Costa, ver Blockers/Concerns e 02-02-SUMMARY.md).
 Resume file: None

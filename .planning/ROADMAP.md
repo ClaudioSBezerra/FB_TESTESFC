@@ -61,8 +61,8 @@ Plans:
 **Plans**: 2 plans (2 waves)
 Plans:
 
-- [ ] 02-01-PLAN.md — Importação de XML: upload/parse/persistência (nfe_saidas + itens) e tela de consulta
-- [ ] 02-02-PLAN.md — Execução fiscal: lookup grupo fiscal (prod/PRODB) + pacote PL/SQL + persistência com status por item
+- [x] 02-01-PLAN.md — Importação de XML: upload/parse/persistência (nfe_saidas + itens) e tela de consulta
+- [ ] 02-02-PLAN.md — Execução fiscal: lookup grupo fiscal (prod/PRODB) + pacote PL/SQL + persistência com status por item (código completo, checkpoint humano com Oracle real pendente — ver 02-02-SUMMARY.md)
 
 **UI hint**: yes
 
@@ -90,5 +90,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Inherited Stack | 5/5 | Complete   | 2026-06-30 |
-| 2. Import Pipeline & Fiscal Execution | 0/? | Not started | - |
+| 2. Import Pipeline & Fiscal Execution | 1/2 | In progress | - |
 | 3. Visual Comparison Screen | 0/? | Not started | - |
