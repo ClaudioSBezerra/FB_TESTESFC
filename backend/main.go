@@ -352,6 +352,11 @@ func main() {
 	http.HandleFunc("/api/nfe-saidas", withAuth(handlers.NFeSaidasListHandler, ""))
 	http.HandleFunc("/api/nfe-saidas/", withAuth(handlers.NFeSaidaDetailHandler, ""))
 
+	// ── Fiscal Execution (Phase 2 Plano 02: lookup prod/PRODB + pacote fiscal) ──
+	// T-02-07: SetMaxOpenConns(5) + semáforo de concorrência (dentro do handler).
+	// T-02-08: nfe_id validado contra a company do JWT antes de qualquer trabalho.
+	http.HandleFunc("/api/fiscal-execution/run", withAuth(handlers.FiscalExecutionRunHandler, ""))
+
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
 
