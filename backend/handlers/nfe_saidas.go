@@ -384,7 +384,7 @@ func insertNFeItens(tx *sql.Tx, nfeID string, companyID string, dets []det) erro
 				c_prod, x_prod, ncm, cfop,
 				cst_icms, cst_pis, cst_cofins,
 				cst_orig, cest,
-				v_prod, v_bc_icms, v_icms,
+				v_prod, v_desc, v_bc_icms, v_icms,
 				v_bc_pis, v_pis,
 				v_bc_cofins, v_cofins,
 				v_ipi,
@@ -394,11 +394,11 @@ func insertNFeItens(tx *sql.Tx, nfeID string, companyID string, dets []det) erro
 				$4, $5, $6, $7,
 				$8, $9, $10,
 				$11, $12,
-				$13, $14, $15,
-				$16, $17,
-				$18, $19,
-				$20,
-				$21, $22
+				$13, $14, $15, $16,
+				$17, $18,
+				$19, $20,
+				$21,
+				$22, $23
 			)
 			ON CONFLICT (nfe_id, n_item) DO UPDATE SET
 				c_prod       = EXCLUDED.c_prod,
@@ -411,6 +411,7 @@ func insertNFeItens(tx *sql.Tx, nfeID string, companyID string, dets []det) erro
 				cst_orig     = EXCLUDED.cst_orig,
 				cest         = EXCLUDED.cest,
 				v_prod       = EXCLUDED.v_prod,
+				v_desc       = EXCLUDED.v_desc,
 				v_bc_icms    = EXCLUDED.v_bc_icms,
 				v_icms       = EXCLUDED.v_icms,
 				v_bc_pis     = EXCLUDED.v_bc_pis,
@@ -425,7 +426,7 @@ func insertNFeItens(tx *sql.Tx, nfeID string, companyID string, dets []det) erro
 			d.Prod.CProd, d.Prod.XProd, d.Prod.NCM, d.Prod.CFOP,
 			cstICMS, d.Imposto.PIS.CST, d.Imposto.COFINS.CST,
 			cstOrig, d.Prod.CEST,
-			toDecimal(d.Prod.VProd), vBCICMS, vICMS,
+			toDecimal(d.Prod.VProd), toDecimal(d.Prod.VDesc), vBCICMS, vICMS,
 			toDecimal(d.Imposto.PIS.VBCPIS), toDecimal(d.Imposto.PIS.VPIS),
 			toDecimal(d.Imposto.COFINS.VBCCOFINS), toDecimal(d.Imposto.COFINS.VCOFINS),
 			toDecimal(d.Imposto.IPI.VIPI),
