@@ -23,7 +23,18 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	go_ora "github.com/sijms/go-ora/v2"
 )
+
+// fiscalOutStringBufSize é o tamanho do buffer VARCHAR2 alocado para cada bind
+// OUT de string do bloco PL/SQL. O driver go-ora exige o seu próprio tipo
+// go_ora.Out{Size: N} para isso — o sql.Out genérico do database/sql passa
+// size=0, o que produz MaxLen=0 (destino é uma string Go vazia) e Oracle
+// retorna ORA-06502 "character string buffer too small" ao tentar escrever
+// qualquer valor não vazio no OUT param. 4000 é o limite clássico de VARCHAR2
+// (suficiente para os campos deste contrato — Mensagem1-4 incluídos).
+const fiscalOutStringBufSize = 4000
 
 // ---------------------------------------------------------------------------
 // FiscalInput — os 23 parâmetros de entrada de calcula_imposto_produto.
@@ -149,9 +160,13 @@ type FiscalResult struct {
 	BaseCalculoIPI            float64
 	ValorIPI                  float64
 	NcmProduto                string
-	IdRegraCalculoIcms        float64
-	IdRegraCalculoPisCofins   float64
-	IdRegraCalculoIpi         float64
+	// IdRegraCalculo* são VARCHAR2 no objeto real (não NUMBER como assumido
+	// inicialmente a partir do nome) — confirmado em 2026-07-01 contra
+	// FCCORP_BKP real: ORA-06502 "character to number conversion error" ao
+	// tentar bind NUMBER nesses campos.
+	IdRegraCalculoIcms      string
+	IdRegraCalculoPisCofins string
+	IdRegraCalculoIpi       string
 
 	// Bloco Reforma Tributária (IBS/CBS)
 	AliquotaIbsUF               float64
@@ -184,8 +199,8 @@ type FiscalResult struct {
 	BaseCalculoIbsCbs           float64
 	CstIbsCbs                   string
 	CClassTribIbsCbs            string
-	IdRegraCalculoIbs           float64
-	IdRegraCalculoCbs           float64
+	IdRegraCalculoIbs           string
+	IdRegraCalculoCbs           string
 }
 
 // fiscalOutField descreve um único campo de saída do objeto Oracle —
@@ -340,7 +355,11 @@ func buildBindArgs(in FiscalInput, result *FiscalResult) []interface{} {
 	resVal := reflect.ValueOf(result).Elem()
 	for _, f := range fiscalOutFields {
 		fv := resVal.FieldByName(f.GoField)
-		args = append(args, sql.Named("o"+f.GoField, sql.Out{Dest: fv.Addr().Interface()}))
+		if fv.Kind() == reflect.String {
+			args = append(args, sql.Named("o"+f.GoField, go_ora.Out{Dest: fv.Addr().Interface(), Size: fiscalOutStringBufSize}))
+		} else {
+			args = append(args, sql.Named("o"+f.GoField, sql.Out{Dest: fv.Addr().Interface()}))
+		}
 	}
 
 	return args
