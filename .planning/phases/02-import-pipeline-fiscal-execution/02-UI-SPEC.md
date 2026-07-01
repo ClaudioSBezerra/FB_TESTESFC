@@ -41,7 +41,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Não usado nesta fase |
 | 3xl | 64px | Não usado nesta fase |
 
-Exceptions: tabela densa usa `text-[11px]` e `py-1`/`py-1.5` (menor que a escala de 8pt em altura de linha) — **intencional e já estabelecido** no padrão herdado (`ConsultaNFeSaidas.tsx`/`ImportarXMLsSaida.tsx`) para tabelas fiscais com muitas colunas numéricas. Manter esse padrão nesta fase para as duas telas novas; não introduzir densidade diferente.
+Exceptions: tabela densa usa `py-1` (menor que a escala de 8pt em altura de linha) — **intencional e já estabelecido** no padrão herdado (`ConsultaNFeSaidas.tsx`/`ImportarXMLsSaida.tsx`) para tabelas fiscais com muitas colunas numéricas; o texto da tabela densa usa `text-sm` (14px, ver seção Typography), não um tamanho extra fora da escala. Manter esse padrão nesta fase para as duas telas novas; não introduzir densidade diferente.
 
 ---
 
@@ -49,14 +49,16 @@ Exceptions: tabela densa usa `text-[11px]` e `py-1`/`py-1.5` (menor que a escala
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
-| Label | 11px (`text-[11px]`) — campos de tabela densa / 12px (`text-xs`) — labels de filtro | 500 (medium) | 1.4 |
-| Heading (h1 de página) | 24px (`text-2xl`) | 700 (bold) | 1.2 |
-| Heading (título de card) | 16px (`text-base`) | 600 (semibold) | 1.3 |
+| Body | 16px (`text-base`) | 400 (regular) | 1.5 |
+| Body compacto (tabela densa) | 14px (`text-sm`) — variação do papel "Body" para linhas de tabela com muitas colunas numéricas | 400 (regular) | 1.4 |
+| Label | 12px (`text-xs`) — único valor para labels de filtro e cabeçalhos de coluna de tabela densa | 700 (bold) | 1.4 |
+| Heading (h1 de página e título de card) | 24px (`text-2xl`) | 700 (bold) | 1.2 |
 
-**Pesos declarados (máx. 2 conforme contrato):** 400 (regular, corpo/valores) e 600/700 (semibold/bold, títulos e destaques — tratados como uma única categoria "peso forte" no código herdado, que mistura `font-semibold`/`font-bold` de forma intercambiável nos títulos; não introduzir um terceiro peso nesta fase).
+**Tamanhos declarados (4 valores numéricos distintos conforme contrato):** 16px (corpo), 14px (corpo compacto — variação do mesmo papel "Body", não um papel novo), 12px (label, valor único — cobre tanto labels de filtro quanto cabeçalhos de tabela densa) e 24px (heading). O antigo `text-[11px]` da tabela densa foi eliminado; a tabela densa agora usa `text-sm` (14px) para o conteúdo das células, mantendo apenas `py-1` como a redução de densidade (via espaçamento vertical, não via um tamanho de fonte extra). O antigo título de card em `text-base`/16px com peso 600 foi unificado ao heading de página em 24px/700 (títulos de card usam o mesmo par tamanho+peso do h1, apenas com hierarquia visual dada por contexto/posição, não por um tamanho próprio).
 
-**Fonte:** herdado do padrão visual já em produção na Fase 1 e nas telas de referência do FB_APU04 (`ImportarXMLsSaida.tsx`, `ConsultaNFeSaidas.tsx`).
+**Pesos declarados (máx. 2 conforme contrato):** 400 (regular — todo o corpo de texto, incluindo a variação compacta da tabela) e 700 (bold — todos os headings e labels, incluindo cabeçalhos de coluna e títulos de card). Não usar 500 (medium) nem 600 (semibold) nesta fase; onde o código herdado usa `font-medium`/`font-semibold`, migrar para `font-bold` (700) nesta fase para respeitar o limite de 2 pesos.
+
+**Fonte:** herdado do padrão visual já em produção na Fase 1 e nas telas de referência do FB_APU04 (`ImportarXMLsSaida.tsx`, `ConsultaNFeSaidas.tsx`), ajustado nesta revisão para respeitar o limite de 4 tamanhos / 2 pesos do contrato de design.
 
 ---
 
@@ -101,22 +103,26 @@ Accent reserved for:
 
 **Reaproveitamento:** cópia seletiva de `FB_APU04/frontend/src/pages/ImportarXMLsSaida.tsx`, adaptado para o domínio desta fase (sem `competencia`, pois não é apuração — confirmar com o planner se o campo de competência é removido ou mantido oculto).
 
+**Ponto focal:** a dropzone de upload é a âncora visual primária da tela — maior área de destaque, primeiro elemento abaixo do header, com contorno tracejado e ícone `CloudUpload` centralizado. O histórico de uploads (card abaixo) é secundário e sempre visualmente mais compacto que a dropzone.
+
 **Contrato visual:**
 - Header: `<h1 className="text-2xl font-bold tracking-tight">Importar XMLs</h1>` + subtítulo `text-sm text-muted-foreground`
 - Dropzone: aceita `.xml`, `.zip`, `.rar` — limite 2GB (mantido igual ao original, decisão confirmada)
 - Estados: `idle` → `scanning` → `uploading` → `polling` → `done`/`error` (idênticos ao componente original)
 - Feedback por arquivo: badges verde (`Importados: N`) e vermelho (`Rejeitados: N`), com lista de erros por arquivo quando houver rejeição (XML-04)
 - Progress bar (`Progress` component) durante `polling`
-- Histórico de uploads abaixo, em `Card` separado, tabela densa (`text-[11px]`)
+- Histórico de uploads abaixo, em `Card` separado, tabela densa (`text-sm`, `py-1`)
 
 ### 2. Notas Importadas (rota sugerida: `/importacoes/notas-saida`, dentro do módulo "Configurações" existente)
 
 **Reaproveitamento:** cópia seletiva de `FB_APU04/frontend/src/pages/ConsultaNFeSaidas.tsx`, com uma coluna nova de status de execução fiscal por item.
 
+**Ponto focal:** a tabela principal de notas é a âncora visual primária — ocupa a maior área vertical da tela e é o elemento com que o usuário mais interage (clique em linha → abre detalhe). Os cards de totalizador (grid 2x4) são um resumo secundário, posicionados acima da tabela mas com hierarquia visual menor (menor peso de contraste, sem interação de clique).
+
 **Contrato visual:**
 - Header: `<h1 className="text-2xl font-bold tracking-tight">Notas Importadas</h1>` + subtítulo
 - Filtros em `Card`: filial, cliente, intervalo de datas (padrão herdado mantido)
-- Cards de totalizador (grid 2x4) acima da tabela
+- Cards de totalizador (grid 2x4) acima da tabela — papel secundário, não competem com a tabela pelo foco do usuário
 - Tabela principal: uma linha por nota (clicável → abre `Dialog` de detalhe com itens e valores esperados do XML — XML-03)
 - **Novo nesta fase — indicador de status por item (ERP-03/FIS-03):** dentro do `Dialog` de detalhe (ou em uma sub-tabela de itens), cada item exibe um badge de status com 3 estados:
 
