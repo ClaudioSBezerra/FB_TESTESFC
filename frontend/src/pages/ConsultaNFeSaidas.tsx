@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, X } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Search, X, Play } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -95,11 +101,63 @@ interface NfeSaidaItemRow {
   v_ibs: number;
   v_cbs: number;
   cclasstrib: string;
+  fiscal_status: string; // '' | 'ok' | 'error' | 'sem_grupo_fiscal'
+  fiscal_error_message: string;
 }
 
 interface NfeSaidaDetail {
   nfe: NfeSaidaRow;
   itens: NfeSaidaItemRow[];
+}
+
+interface FiscalExecutionSummary {
+  total: number;
+  ok: number;
+  sem_grupo_fiscal: number;
+  error: number;
+}
+
+// ---------------------------------------------------------------------------
+// Badge de status de execução fiscal por item (ERP-03/FIS-03 — UI-SPEC linhas 116-136)
+// ---------------------------------------------------------------------------
+const FISCAL_STATUS_META: Record<string, { label: string; className: string; tooltip: string }> = {
+  ok: {
+    label: 'OK',
+    className: 'bg-green-50 text-green-700 border-green-200',
+    tooltip: 'Grupo fiscal encontrado e pacote fiscal executado com sucesso.',
+  },
+  sem_grupo_fiscal: {
+    label: 'Sem grupo fiscal',
+    className: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    tooltip: 'Produto não encontrado em PROD/PRODB — grupo fiscal não pôde ser determinado.',
+  },
+  error: {
+    label: 'Erro no cálculo',
+    className: 'bg-red-50 text-red-700 border-red-200',
+    tooltip: 'Falha ao executar o pacote fiscal.',
+  },
+};
+
+function FiscalStatusBadge({ status, errorMessage }: { status: string; errorMessage?: string }) {
+  if (!status) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+  const meta = FISCAL_STATUS_META[status] ?? {
+    label: status,
+    className: 'bg-muted text-muted-foreground border-muted',
+    tooltip: status,
+  };
+  const tooltipText = status === 'error' && errorMessage ? `Falha ao executar o pacote fiscal: ${errorMessage}.` : meta.tooltip;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge variant="outline" className={`text-xs px-1.5 py-0 ${meta.className}`}>
+          {meta.label}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs text-xs">{tooltipText}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -164,6 +222,7 @@ function DetalheNFe({ id, onClose, authHeaders }: {
   onClose: () => void;
   authHeaders: Record<string, string>;
 }) {
+  const qc = useQueryClient();
   const { data, isLoading, isError } = useQuery<NfeSaidaDetail>({
     queryKey: ['nfe-saida-detail', id],
     queryFn: async () => {
@@ -171,6 +230,27 @@ function DetalheNFe({ id, onClose, authHeaders }: {
       if (!res.ok) throw new Error(res.statusText);
       return res.json();
     },
+  });
+
+  // Dispara o pipeline de execução fiscal (lookup grupo fiscal + pacote
+  // fiscal) para todos os itens desta nota — ERP-02/FIS-01/FIS-02.
+  const runFiscalMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/fiscal-execution/run', {
+        method: 'POST',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nfe_id: id }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json() as Promise<FiscalExecutionSummary>;
+    },
+    onSuccess: (summary) => {
+      toast.success(
+        `Cálculo fiscal concluído: ${summary.total} item(ns) — ${summary.ok} ok, ${summary.sem_grupo_fiscal} sem grupo fiscal, ${summary.error} erro(s).`
+      );
+      qc.invalidateQueries({ queryKey: ['nfe-saida-detail', id] });
+    },
+    onError: (e: Error) => toast.error(`Erro ao executar cálculo fiscal: ${e.message}`),
   });
 
   return (
@@ -185,11 +265,22 @@ function DetalheNFe({ id, onClose, authHeaders }: {
         {data && (
           <>
             <DialogHeader>
-              <DialogTitle className="text-sm">
-                NF-e {data.nfe.modelo} · Série {data.nfe.serie} · Nº {data.nfe.numero_nfe}
-                <div className="text-xs font-normal text-muted-foreground mt-0.5 break-all">
-                  Chave: {data.nfe.chave_nfe}
+              <DialogTitle className="text-sm flex items-start justify-between gap-2">
+                <div>
+                  NF-e {data.nfe.modelo} · Série {data.nfe.serie} · Nº {data.nfe.numero_nfe}
+                  <div className="text-xs font-normal text-muted-foreground mt-0.5 break-all">
+                    Chave: {data.nfe.chave_nfe}
+                  </div>
                 </div>
+                <Button
+                  size="sm"
+                  onClick={() => runFiscalMutation.mutate()}
+                  disabled={runFiscalMutation.isPending}
+                  className="shrink-0"
+                >
+                  <Play className="h-3 w-3 mr-1" />
+                  {runFiscalMutation.isPending ? 'Calculando...' : 'Executar cálculo fiscal'}
+                </Button>
               </DialogTitle>
             </DialogHeader>
 
@@ -253,38 +344,44 @@ function DetalheNFe({ id, onClose, authHeaders }: {
                 {data.itens.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-2">Nenhum item persistido para esta nota.</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead className="py-1 px-2 text-xs">Item</TableHead>
-                          <TableHead className="py-1 px-2 text-xs">Produto</TableHead>
-                          <TableHead className="py-1 px-2 text-xs">NCM</TableHead>
-                          <TableHead className="py-1 px-2 text-xs">CFOP</TableHead>
-                          <TableHead className="py-1 px-2 text-xs text-right">vProd</TableHead>
-                          <TableHead className="py-1 px-2 text-xs text-right">Base ICMS</TableHead>
-                          <TableHead className="py-1 px-2 text-xs text-right">vICMS</TableHead>
-                          <TableHead className="py-1 px-2 text-xs text-right">vPIS</TableHead>
-                          <TableHead className="py-1 px-2 text-xs text-right">vCOFINS</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.itens.map(item => (
-                          <TableRow key={item.id} className="h-8">
-                            <TableCell className="py-1 px-2 text-xs text-center">{item.n_item}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs max-w-[180px] truncate" title={item.x_prod}>{item.x_prod}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs font-mono">{item.ncm || '—'}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs font-mono">{item.cfop || '—'}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_prod)}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_bc_icms)}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_icms)}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_pis)}</TableCell>
-                            <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_cofins)}</TableCell>
+                  <TooltipProvider delayDuration={200}>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="py-1 px-2 text-xs">Item</TableHead>
+                            <TableHead className="py-1 px-2 text-xs">Produto</TableHead>
+                            <TableHead className="py-1 px-2 text-xs">NCM</TableHead>
+                            <TableHead className="py-1 px-2 text-xs">CFOP</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-right">vProd</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-right">Base ICMS</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-right">vICMS</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-right">vPIS</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-right">vCOFINS</TableHead>
+                            <TableHead className="py-1 px-2 text-xs text-center">Status</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                        </TableHeader>
+                        <TableBody>
+                          {data.itens.map(item => (
+                            <TableRow key={item.id} className="h-8">
+                              <TableCell className="py-1 px-2 text-xs text-center">{item.n_item}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs max-w-[180px] truncate" title={item.x_prod}>{item.x_prod}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs font-mono">{item.ncm || '—'}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs font-mono">{item.cfop || '—'}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_prod)}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_bc_icms)}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_icms)}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_pis)}</TableCell>
+                              <TableCell className="py-1 px-2 text-xs text-right">{fmtBRL(item.v_cofins)}</TableCell>
+                              <TableCell className="py-1 px-2 text-center">
+                                <FiscalStatusBadge status={item.fiscal_status} errorMessage={item.fiscal_error_message} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TooltipProvider>
                 )}
               </Secao>
             </div>

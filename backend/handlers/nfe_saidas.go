@@ -686,6 +686,12 @@ type nfeSaidaItemRow struct {
 	VIBS       float64 `json:"v_ibs"`
 	VCBS       float64 `json:"v_cbs"`
 	CClassTrib string  `json:"cclasstrib"`
+
+	// Extensão do Plano 02-02 (execução fiscal) — status por item via LEFT JOIN
+	// em fiscal_execution_items. FiscalStatus == "" quando o item ainda não foi
+	// processado (nenhuma linha em fiscal_execution_items para ele).
+	FiscalStatus       string `json:"fiscal_status"`
+	FiscalErrorMessage string `json:"fiscal_error_message"`
 }
 
 func NFeSaidaDetailHandler(db *sql.DB) http.HandlerFunc {
@@ -747,16 +753,22 @@ func NFeSaidaDetailHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Extensão do Plano 02-02: LEFT JOIN em fiscal_execution_items para
+		// trazer o status de execução fiscal por item (ok/error/sem_grupo_fiscal),
+		// sem exigir que a nota já tenha sido processada (item sem linha em
+		// fiscal_execution_items retorna fiscal_status = '').
 		itemRows, err := db.Query(`
 			SELECT
-				id, n_item, COALESCE(c_prod,''), x_prod, COALESCE(ncm,''), COALESCE(cest,''),
-				COALESCE(cfop,''), COALESCE(cst_icms,''), COALESCE(cst_orig,''),
-				COALESCE(cst_pis,''), COALESCE(cst_cofins,''),
-				v_prod, v_bc_icms, v_icms, v_bc_st, v_st, v_ipi,
-				v_bc_pis, v_pis, v_bc_cofins, v_cofins, v_ibs, v_cbs, COALESCE(cclasstrib,'')
-			FROM nfe_saidas_itens
-			WHERE nfe_id = $1
-			ORDER BY n_item ASC`, row.ID)
+				i.id, i.n_item, COALESCE(i.c_prod,''), i.x_prod, COALESCE(i.ncm,''), COALESCE(i.cest,''),
+				COALESCE(i.cfop,''), COALESCE(i.cst_icms,''), COALESCE(i.cst_orig,''),
+				COALESCE(i.cst_pis,''), COALESCE(i.cst_cofins,''),
+				i.v_prod, i.v_bc_icms, i.v_icms, i.v_bc_st, i.v_st, i.v_ipi,
+				i.v_bc_pis, i.v_pis, i.v_bc_cofins, i.v_cofins, i.v_ibs, i.v_cbs, COALESCE(i.cclasstrib,''),
+				COALESCE(f.status,''), COALESCE(f.error_message,'')
+			FROM nfe_saidas_itens i
+			LEFT JOIN fiscal_execution_items f ON f.nfe_item_id = i.id
+			WHERE i.nfe_id = $1
+			ORDER BY i.n_item ASC`, row.ID)
 		if err != nil {
 			log.Printf("NFeSaidaDetail itens query error (nfe %s): %v", row.ID, err)
 			jsonErr(w, http.StatusInternalServerError, "Erro ao consultar itens da nota")
@@ -772,6 +784,7 @@ func NFeSaidaDetailHandler(db *sql.DB) http.HandlerFunc {
 				&it.CFOP, &it.CSTICMS, &it.CSTOrig, &it.CSTPIS, &it.CSTCOFINS,
 				&it.VProd, &it.VBCICMS, &it.VICMS, &it.VBCST, &it.VST, &it.VIPI,
 				&it.VBCPIS, &it.VPIS, &it.VBCCOFINS, &it.VCOFINS, &it.VIBS, &it.VCBS, &it.CClassTrib,
+				&it.FiscalStatus, &it.FiscalErrorMessage,
 			); err != nil {
 				log.Printf("NFeSaidaDetail item scan error: %v", err)
 				continue
