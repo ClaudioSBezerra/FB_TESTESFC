@@ -17,6 +17,8 @@ export const modules: Record<string, ModuleConfig> = {
     tabs: [
       { label: 'Credenciais ERP',  path: '/config/erp-bridge',         adminOnly: true },
       { label: 'Config ERP',       path: '/importacoes/erp-bridge',     adminOnly: true },
+      { label: 'Importar XMLs',    path: '/importacoes/xmls-saida' },
+      { label: 'Notas Importadas', path: '/importacoes/notas-saida' },
       { label: 'Ambiente',         path: '/config/ambiente' },
       { label: 'Gestores',         path: '/config/gestores' },
       { label: 'Usuários',         path: '/config/usuarios',            adminOnly: true },

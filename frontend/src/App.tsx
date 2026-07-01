@@ -10,6 +10,8 @@ import Managers from './pages/Managers'
 import AdminUsers from './pages/AdminUsers'
 import ERPBridgeConfig from './pages/ERPBridgeConfig'
 import ERPBridgeCredenciais from './pages/ERPBridgeCredenciais'
+import ImportarXMLsSaida from './pages/ImportarXMLsSaida'
+import ConsultaNFeSaidas from './pages/ConsultaNFeSaidas'
 import { AppRail } from '@/components/AppRail'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 // Sem FilialProvider, CompanySwitcher, AjudaChat, ModuleTabs (D-04, D-11)
@@ -58,6 +60,8 @@ function AppLayout() {
               <Route path="/config/usuarios"        element={<AdminRoute><AdminUsers /></AdminRoute>} />
               <Route path="/importacoes/erp-bridge" element={<AdminRoute><ERPBridgeConfig /></AdminRoute>} />
               <Route path="/config/erp-bridge"      element={<AdminRoute><ERPBridgeCredenciais /></AdminRoute>} />
+              <Route path="/importacoes/xmls-saida"  element={<ProtectedRoute><ImportarXMLsSaida /></ProtectedRoute>} />
+              <Route path="/importacoes/notas-saida" element={<ProtectedRoute><ConsultaNFeSaidas /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>
