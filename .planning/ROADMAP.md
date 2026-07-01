@@ -14,7 +14,7 @@ O projeto parte de uma cópia seletiva dos módulos maduros do FB_APU04 (auth, g
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Inherited Stack** - Scaffold do projeto com módulos herdados do FB_APU04 rodando (auth, gestão Ferreira Costa, ERP_BRIDGE) (completed 2026-06-30)
-- [ ] **Phase 2: Import Pipeline & Fiscal Execution** - Importação de XML, lookup de grupo fiscal no Oracle e execução do pacote fiscal persiste resultados
+- [x] **Phase 2: Import Pipeline & Fiscal Execution** - Importação de XML, lookup de grupo fiscal no Oracle e execução do pacote fiscal persiste resultados (completed 2026-07-01)
 - [ ] **Phase 3: Visual Comparison Screen** - Tela de comparação visual item a item (esperado vs. calculado) com divergências destacadas
 
 ## Phase Details
@@ -62,7 +62,7 @@ Plans:
 Plans:
 
 - [x] 02-01-PLAN.md — Importação de XML: upload/parse/persistência (nfe_saidas + itens) e tela de consulta
-- [ ] 02-02-PLAN.md — Execução fiscal: lookup grupo fiscal (prod/PRODB) + pacote PL/SQL + persistência com status por item (código completo, checkpoint humano com Oracle real pendente — ver 02-02-SUMMARY.md)
+- [x] 02-02-PLAN.md — Execução fiscal: lookup grupo fiscal (prod/PRODB) + pacote PL/SQL + persistência com status por item
 
 **UI hint**: yes
 
@@ -90,5 +90,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Inherited Stack | 5/5 | Complete   | 2026-06-30 |
-| 2. Import Pipeline & Fiscal Execution | 1/2 | In progress | - |
+| 2. Import Pipeline & Fiscal Execution | 2/2 | Complete | 2026-07-01 |
 | 3. Visual Comparison Screen | 0/? | Not started | - |

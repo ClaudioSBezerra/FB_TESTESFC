@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: blocked-checkpoint
-stopped_at: "02-02 código completo (3/4 tasks, commits dda4c70/72d6a9c/6865455) — checkpoint humano bloqueante pendente: requer Oracle real (prod/PRODB/FCCORP_BKP), não disponível neste ambiente."
-last_updated: "2026-07-01T21:50:00.000Z"
-last_activity: 2026-07-01 -- 02-02 code complete, awaiting real-Oracle checkpoint
+status: verifying
+stopped_at: "Fase 2 completa — checkpoint humano do 02-02 aprovado contra Oracle real (FCCORP_BKP/prod/PRODB), 2 bugs de binding corrigidos (commit 50773a8). Pronta para Fase 3 (tela de comparação)."
+last_updated: "2026-07-01T21:45:00.000Z"
+last_activity: 2026-07-01 -- Fase 2 completa, checkpoint 02-02 aprovado
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 47
+  completed_plans: 7
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-30)
 
 **Core value:** Tela que compara, item a item e imposto a imposto, o valor esperado (do XML real) vs. o calculado pelo pacote fiscal (script no FCCORP_BKP), destacando divergências.
-**Current focus:** Phase 02 — import-pipeline-fiscal-execution
+**Current focus:** Phase 03 — visual-comparison-screen (próxima)
 
 ## Current Position
 
-Phase: 02 (import-pipeline-fiscal-execution) — BLOCKED ON CHECKPOINT
-Plan: 2 of 2 (código completo, checkpoint humano com Oracle real pendente)
-Status: 02-02 aguardando verificação com Oracle real (prod/PRODB/FCCORP_BKP) e XML real da Ferreira Costa
+Phase: 02 (import-pipeline-fiscal-execution) — COMPLETE
+Plan: 2 of 2 — ambos verificados (checkpoints humanos aprovados)
+Status: Fase 2 completa. Próximo: discutir/planejar Fase 3 (tela de comparação item a item)
 Last activity: 2026-07-01
 
-Progress: [██████░░░░] 47%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -78,7 +78,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Checkpoint humano bloqueante do 02-02 (execução fiscal)**: código completo e commitado (dda4c70/72d6a9c/6865455), mas não verificado contra Oracle real (prod/PRODB/FCCORP_BKP) nem XML real da Ferreira Costa — este ambiente não tem essas conexões. Precisa do usuário: (1) testar conexão Oracle real, (2) subir com `--force-recreate`, (3) rodar "Executar cálculo fiscal" numa nota real, (4) confirmar `codEmpresaPorCNPJRaiz` da filial Garanhuns/PE (só Recife/PE está mapeada, a partir do CNPJ de exemplo do script de teste), (5) revisar defaults de parâmetros sem fonte persistida (`pTipoContribuinte`, `pTipoCentroFiscal`, `pIndicadorServico`, `FornecedorSimplesNacional`) contra o comportamento real do pacote. Detalhe completo em `02-02-SUMMARY.md` → "Next Phase Readiness".
+- **`codEmpresaPorCNPJRaiz` incompleto**: só a raiz de CNPJ de Recife/PE (`10230480` → `cod_empresa=2`) está confirmada e mapeada em `backend/handlers/fiscal_group_lookup.go`. Garanhuns/PE (`cod_empresa=1`) ainda não tem raiz de CNPJ confirmada — notas dessa filial retornam erro explícito por item até ser adicionada. Não bloqueia a Fase 3, mas deve ser completado antes de usar o validador com notas reais de todas as filiais.
+- **Defaults de parâmetros do pacote fiscal não totalmente validados**: `pTipoContribuinte`, `pTipoCentroFiscal`, `pIndicadorServico`, `FornecedorSimplesNacional`, `pAliquotaSimplesNacional` em `backend/handlers/fiscal_execution.go` usam defaults conservadores (só o caminho "normal" foi testado contra Oracle real). A comparação da Fase 3 vai expor rapidamente qualquer default incorreto quando aparecerem casos reais divergentes (Simples Nacional, prestação de serviço, etc.).
 
 ## Deferred Items
 
@@ -90,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-01T21:50:00.000Z
-Stopped at: 02-02 (execução fiscal) código completo e commitado — checkpoint humano bloqueante pendente (requer Oracle real + XML real da Ferreira Costa, ver Blockers/Concerns e 02-02-SUMMARY.md).
+Last session: 2026-07-01T21:45:00.000Z
+Stopped at: Fase 2 (Import Pipeline & Fiscal Execution) completa — checkpoint 02-02 aprovado contra Oracle real, 2 bugs de binding go-ora corrigidos e commitados. Próximo passo: discuss-phase/plan-phase da Fase 3 (tela de comparação item a item, esperado-vs-calculado).
 Resume file: None
