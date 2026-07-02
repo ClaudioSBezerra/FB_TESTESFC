@@ -357,6 +357,11 @@ func main() {
 	// T-02-08: nfe_id validado contra a company do JWT antes de qualquer trabalho.
 	http.HandleFunc("/api/fiscal-execution/run", withAuth(handlers.FiscalExecutionRunHandler, ""))
 
+	// ── Visual Comparison Screen (Phase 3: comparação esperado x calculado) ──
+	// T-03-01/T-03-02: withAuth (JWT obrigatório) + company_id sempre via
+	// erpBridgeGetCompany (nunca aceito do cliente).
+	http.HandleFunc("/api/fiscal-comparison", withAuth(handlers.FiscalComparisonListHandler, ""))
+
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
 
