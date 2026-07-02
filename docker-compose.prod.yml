@@ -1,0 +1,88 @@
+services:
+  # Backend (Go) — não publica porta ao host; acesso só via proxy nginx do web (T-k3u-02)
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fb_testesfc-api
+    restart: always
+    expose:
+      - "8085"
+    environment:
+      - PORT=8085
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - APP_URL=${APP_URL:-https://testesfc.fbtax.cloud}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - COOKIE_SECURE=true
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      fb_net:
+        aliases:
+          - testesfc-api
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8085/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (React/nginx) — único serviço exposto ao Traefik/coolify
+  web:
+    build:
+      context: ./frontend
+    container_name: fb_testesfc-web
+    restart: always
+    expose:
+      - "80"
+    depends_on:
+      - api
+    networks:
+      - fb_net
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+      - "traefik.http.routers.testesfc.rule=Host(`testesfc.fbtax.cloud`)"
+      - "traefik.http.routers.testesfc.entrypoints=https"
+      - "traefik.http.routers.testesfc.tls=true"
+      - "traefik.http.routers.testesfc.tls.certresolver=letsencrypt"
+      - "traefik.http.services.testesfc.loadbalancer.server.port=80"
+
+  # Banco de Dados — nunca na rede coolify (T-k3u-01: evita colisão de DNS entre stacks)
+  db:
+    image: postgres:15-alpine
+    container_name: fb_testesfc-db
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data_testesfc_prod:/var/lib/postgresql/data
+    networks:
+      - fb_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  fb_net:
+    driver: bridge
+  coolify:
+    external: true
+
+volumes:
+  postgres_data_testesfc_prod:
+    driver: local
