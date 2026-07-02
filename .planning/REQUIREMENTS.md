@@ -49,8 +49,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **CMP-01**: Tela lista, item a item, os impostos esperado (XML) vs. calculado (script): base ICMS, vlr ICMS, base ST, ICMS ST, base PIS/COFINS, vlr PIS/COFINS, DIFAL, FCP, entre outros
 - [x] **CMP-02**: Divergências entre esperado e calculado são destacadas visualmente (ex.: cor/ícone) com a diferença numérica
-- [ ] **CMP-03**: Usuário pode filtrar/visualizar apenas itens com divergência
-- [ ] **CMP-04**: Tela apresenta um resumo (total de itens, itens OK, itens divergentes) por nota e/ou por lote importado
+- [x] **CMP-03**: Usuário pode filtrar/visualizar apenas itens com divergência
+- [x] **CMP-04**: Tela apresenta um resumo (total de itens, itens OK, itens divergentes) por nota e/ou por lote importado
 
 ## v2 Requirements
 
@@ -105,8 +105,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIS-03 | Phase 2 | Pending |
 | CMP-01 | Phase 3 | Complete |
 | CMP-02 | Phase 3 | Complete |
-| CMP-03 | Phase 3 | Pending |
-| CMP-04 | Phase 3 | Pending |
+| CMP-03 | Phase 3 | Complete |
+| CMP-04 | Phase 3 | Complete |
 
 **Coverage:**
 

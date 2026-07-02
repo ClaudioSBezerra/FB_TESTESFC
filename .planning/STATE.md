@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-07-02T13:35:30.475Z"
+last_updated: "2026-07-02T13:52:56.466Z"
 last_activity: 2026-07-02
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 67
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 ## Current Position
 
 Phase: 03 (visual-comparison-screen) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-02
 
@@ -56,6 +56,7 @@ Progress: [███████░░░] 67%
 | Phase 01-foundation-inherited-stack P01-03 | 12min | 2 tasks | 6 files |
 | Phase 01-foundation-inherited-stack P01-04 | 25min | 2 tasks | 6 files |
 | Phase 03 P01 | 20min | 2 tasks | 5 files |
+| Phase 03 P02 | 20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase ?]: environment.go adaptado sem cnpj/cnae_secundario/municipio: schema 001 não tem essas colunas
 - [Phase 03]: Comparação Fiscal: divergência = qualquer diferença != 0 nos 4 pares (ICMS/ICMS-ST/PIS/COFINS), sem tolerância de arredondamento — Validador fiscal — até 1 centavo pode importar (D-06 do 03-CONTEXT.md)
 - [Phase 03]: Item com fiscal_status != 'ok' é classificado como 'Não calculado', nunca como divergente — Evita falso positivo quando o cálculo ainda não foi concluído (D-10)
+- [Phase ?]: [Phase 03-02]: Cards de resumo global recalculados para derivar de displayItems (pós-filtro), corrigindo comportamento herdado do 03-01 que contava sobre a lista bruta
+- [Phase ?]: [Phase 03-02]: Mapeamento curado de full_result (IBS UF/Município, CBS, alíquotas) com rótulos amigáveis + fallback genérico chave-valor para os demais ~70 campos
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T13:35:30.472Z
+Last session: 2026-07-02T13:46:09.964Z
 Stopped at: Completed 03-01-PLAN.md
 Resume file: None

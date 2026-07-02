@@ -83,7 +83,7 @@ Plans:
 Plans:
 
 - [x] 03-01-PLAN.md — Endpoint /api/fiscal-comparison + página lista item a item (Esperado|Calculado|Diferença, divergências destacadas)
-- [ ] 03-02-PLAN.md — Filtro 'só divergentes', cards de resumo e Dialog de detalhe (Base+Valor, seção 'Só calculado' DIFAL/FCP, resumo por nota)
+- [x] 03-02-PLAN.md — Filtro 'só divergentes', cards de resumo e Dialog de detalhe (Base+Valor, seção 'Só calculado' DIFAL/FCP, resumo por nota)
 - [ ] 03-03-PLAN.md — Checkpoint de verificação humana de fim de fase (CMP-01..04 contra dados reais)
 
 **UI hint**: yes
@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Foundation & Inherited Stack | 5/5 | Complete   | 2026-06-30 |
 | 2. Import Pipeline & Fiscal Execution | 2/2 | Complete | 2026-07-01 |
-| 3. Visual Comparison Screen | 1/3 | In Progress|  |
+| 3. Visual Comparison Screen | 2/3 | In Progress|  |
