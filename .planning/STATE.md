@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 Phase: Milestone v1.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-02 - Completed quick task 260702-le0: Fix produção (503) — alias de rede testesfc-api no nginx.conf
+Last activity: 2026-07-02 - Completed quick task 260702-lp5: Migração 010_ensure_master_link.sql + padrão MASTER documentado na skill coolify-deploy-checklist
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Recent decisions affecting current work:
 - [Phase 03.1]: getActiveModule fallback retorna 'comparacao' em vez de 'config', alinhado à nova página de destino pós-login (D-07/D-08) a ser ligada no plano 02
 - [Phase 03.1]: Configurações icon retargeted from AdminRoute (/config/erp-bridge) to ProtectedRoute (/config/ambiente) so no role bounces to '/'
 - [Phase 03.1]: Root route '/' and post-login redirect both point to /importacoes/comparacao-fiscal (ProtectedRoute), ending the non-admin redirect loop (BLOCKER-2)
+- [Quick 260702-lp5]: Migração `010_ensure_master_link.sql` portada quase literalmente de `024_ensure_master_link.sql` do FB_APU04, garantindo hierarquia MASTER e vínculo do admin logo após deploy com banco zerado; padrão capturado na skill global `coolify-deploy-checklist` (seção 1.7) para produtos futuros da família FBTax
 
 ### Roadmap Evolution
 
@@ -98,6 +99,7 @@ None yet.
 | 260702-ju0 | Substituir os 5 bullets herdados do FB_APU04 (EFD/SPED) na tela de login por "Ler base atual de saídas e fazer cálculos para reforma tributária" | 2026-07-02 | 790bebf | [260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle](./quick/260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle/) |
 | 260702-k3u | Configurar deploy de produção no Coolify/Hostinger (docker-compose.prod.yml + workflow de CI) para https://testesfc.fbtax.cloud | 2026-07-02 | 590ad48 | [260702-k3u-configurar-deploy-de-produ-o-no-coolify-](./quick/260702-k3u-configurar-deploy-de-produ-o-no-coolify-/) |
 | 260702-le0 | Fix produção (503): nginx.conf usava container_name fb_testesfc-api (ignorado pelo Coolify) em vez do alias de rede testesfc-api | 2026-07-02 | b22df36 | [260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte](./quick/260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte/) |
+| 260702-lp5 | Migração idempotente 010_ensure_master_link.sql (garante hierarquia MASTER + vínculo do admin) + padrão documentado na skill global coolify-deploy-checklist | 2026-07-02 | 0ef828a | [260702-lp5-criar-migra-o-010-ensure-master-link-sql](./quick/260702-lp5-criar-migra-o-010-ensure-master-link-sql/) |
 
 ### Blockers/Concerns
 
@@ -115,8 +117,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T17:15:00.000Z
-Stopped at: Fase 03.1 completa (checkpoint click-through admin+não-admin aprovado). v1.0-MILESTONE-AUDIT.md re-rodado: status passed. Próximo: /gsd:complete-milestone 1.0.
+Last session: 2026-07-02T18:41:32.000Z
+Stopped at: Completed quick task 260702-lp5: Migração 010_ensure_master_link.sql criada e padrão MASTER documentado na skill global coolify-deploy-checklist. Próximo: /gsd:complete-milestone 1.0 (ainda pendente).
 Resume file: .planning/v1.0-MILESTONE-AUDIT.md
 
 ## Operator Next Steps
