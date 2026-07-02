@@ -27,7 +27,9 @@ services:
       db:
         condition: service_healthy
     networks:
-      - fb_testesfc_net
+      fb_testesfc_net:
+        aliases:
+          - testesfc-api
 
   # Frontend (React) — porta 3004, distinta do FB_APU04 (3003) (D-13)
   web:
