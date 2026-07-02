@@ -11,11 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 const FEATURES = [
-  "Importação de várias fontes: EFD ICMS, XMLs e planilhas",
-  "Importação de NF-e via ERP Bridge com PIS, COFINS e IPI",
-  "Dados escriturados visualizados em dashboards",
-  "Rastreabilidade NF-e → lançamento EFD para auditoria fiscal",
-  "Conformidade SPED layout 020 (vigência Janeiro/2026)",
+  "Ler base atual de saídas e fazer cálculos para reforma tributária",
 ];
 
 const Login = () => {
