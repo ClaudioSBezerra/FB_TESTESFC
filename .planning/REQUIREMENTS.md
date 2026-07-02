@@ -35,7 +35,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Fiscal Group Lookup (Grupo fiscal via ERP_BRIDGE / Oracle)
 
-- [ ] **ERP-01**: Conexão Oracle de leitura é configurável (reaproveitando credenciais/infra do ERP_BRIDGE)
+- [x] **ERP-01**: Conexão Oracle de leitura é configurável (reaproveitando credenciais/infra do ERP_BRIDGE)
 - [x] **ERP-02**: Para cada item do XML, sistema consulta `prod` + `PRODB` e obtém o grupo fiscal do produto
 - [x] **ERP-03**: Itens sem grupo fiscal localizado são sinalizados sem interromper o processamento dos demais
 

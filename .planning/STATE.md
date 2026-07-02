@@ -104,6 +104,7 @@ None yet.
 | Automation | AUTO-01: Suíte de testes Go automatizada | v2 | Roadmap creation |
 | Automation | AUTO-02: Exportação CSV/Excel | v2 | Roadmap creation |
 | Multi-tenant | MTN-01: Suporte a múltiplas empresas | v2 | Roadmap creation |
+| Quick task | 260701-oaa: busca automática de XMLs NFe (diretamente do ERP?) — pasta vazia sem conteúdo, artefato órfão de sessão anterior | acknowledged | Milestone v1.0 close (2026-07-02) |
 
 ## Session Continuity
 
