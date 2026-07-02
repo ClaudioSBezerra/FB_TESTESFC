@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 Phase: Milestone v1.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-02 - Completed quick task 260702-jt1: Trocar texto do badge da tela de login
+Last activity: 2026-07-02 - Completed quick task 260702-ju0: Substituir bullets herdados do FB_APU04 na tela de login
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260702-jt1 | Trocar texto do badge da tela de login: "Simulador da Reforma Tributária - SPED" → "Simulador do pacote fiscal - FCTAX" | 2026-07-02 | 0aa3418 | [260702-jt1-na-tela-inicial-do-login-trocar-o-texto-](./quick/260702-jt1-na-tela-inicial-do-login-trocar-o-texto-/) |
+| 260702-ju0 | Substituir os 5 bullets herdados do FB_APU04 (EFD/SPED) na tela de login por "Ler base atual de saídas e fazer cálculos para reforma tributária" | 2026-07-02 | 790bebf | [260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle](./quick/260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle/) |
 
 ### Blockers/Concerns
 
