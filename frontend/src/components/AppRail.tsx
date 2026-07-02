@@ -1,4 +1,4 @@
-import { Settings, LogOut, KeyRound } from 'lucide-react'
+import { Settings, LogOut, KeyRound, Upload, ListChecks, Scale } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import {
@@ -30,8 +30,11 @@ import { getActiveModule } from '@/lib/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-// Fase 1: nenhum módulo de negócio — AppRail apenas com Configurações + avatar
-const mainItems: { id: string; icon: typeof Settings; label: string; path: string }[] = []
+const mainItems: { id: string; icon: typeof Settings; label: string; path: string }[] = [
+  { id: 'importacoes', icon: Upload,     label: 'Importações',       path: '/importacoes/xmls-saida' },
+  { id: 'notas',       icon: ListChecks, label: 'Notas Importadas',  path: '/importacoes/notas-saida' },
+  { id: 'comparacao',  icon: Scale,      label: 'Comparação Fiscal', path: '/importacoes/comparacao-fiscal' },
+]
 
 export function AppRail() {
   const location = useLocation()
@@ -93,7 +96,7 @@ export function AppRail() {
           />
         </div>
 
-        {/* Nav principal — vazia na Fase 1 */}
+        {/* Nav principal — módulos de negócio */}
         <nav className="flex flex-col items-center gap-1 p-2 flex-1 pt-3">
           {mainItems.map(item => (
             <Tooltip key={item.id}>
@@ -123,7 +126,7 @@ export function AppRail() {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => navigate('/config/erp-bridge')}
+                onClick={() => navigate('/config/ambiente')}
                 className={cn(
                   'flex items-center justify-center w-10 h-10 rounded-lg transition-colors',
                   active === 'config'
