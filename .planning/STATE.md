@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 Phase: Milestone v1.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-02 - Completed quick task 260702-k3u: Configurar deploy de produção no Coolify (testesfc.fbtax.cloud)
+Last activity: 2026-07-02 - Completed quick task 260702-le0: Fix produção (503) — alias de rede testesfc-api no nginx.conf
 
 ## Performance Metrics
 
@@ -97,6 +97,7 @@ None yet.
 | 260702-jt1 | Trocar texto do badge da tela de login: "Simulador da Reforma Tributária - SPED" → "Simulador do pacote fiscal - FCTAX" | 2026-07-02 | 0aa3418 | [260702-jt1-na-tela-inicial-do-login-trocar-o-texto-](./quick/260702-jt1-na-tela-inicial-do-login-trocar-o-texto-/) |
 | 260702-ju0 | Substituir os 5 bullets herdados do FB_APU04 (EFD/SPED) na tela de login por "Ler base atual de saídas e fazer cálculos para reforma tributária" | 2026-07-02 | 790bebf | [260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle](./quick/260702-ju0-na-tela-de-login-trocar-a-lista-de-bulle/) |
 | 260702-k3u | Configurar deploy de produção no Coolify/Hostinger (docker-compose.prod.yml + workflow de CI) para https://testesfc.fbtax.cloud | 2026-07-02 | 590ad48 | [260702-k3u-configurar-deploy-de-produ-o-no-coolify-](./quick/260702-k3u-configurar-deploy-de-produ-o-no-coolify-/) |
+| 260702-le0 | Fix produção (503): nginx.conf usava container_name fb_testesfc-api (ignorado pelo Coolify) em vez do alias de rede testesfc-api | 2026-07-02 | b22df36 | [260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte](./quick/260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte/) |
 
 ### Blockers/Concerns
 
