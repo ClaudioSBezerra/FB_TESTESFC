@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: "Fase 2 completa. Próximo: discutir/planejar Fase 3 (tela de comparação item a item)"
-stopped_at: Phase 3 context gathered
-last_updated: "2026-07-02T12:25:32.824Z"
-last_activity: 2026-07-01
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-07-02T13:35:30.475Z"
+last_activity: 2026-07-02
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 8
   percent: 67
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-30)
 
 **Core value:** Tela que compara, item a item e imposto a imposto, o valor esperado (do XML real) vs. o calculado pelo pacote fiscal (script no FCCORP_BKP), destacando divergências.
-**Current focus:** Phase 03 — visual-comparison-screen (próxima)
+**Current focus:** Phase 03 — visual-comparison-screen
 
 ## Current Position
 
-Phase: 02 (import-pipeline-fiscal-execution) — COMPLETE
-Plan: 2 of 2 — ambos verificados (checkpoints humanos aprovados)
-Status: Fase 2 completa. Próximo: discutir/planejar Fase 3 (tela de comparação item a item)
-Last activity: 2026-07-01
+Phase: 03 (visual-comparison-screen) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-02
 
 Progress: [███████░░░] 67%
 
@@ -55,6 +55,7 @@ Progress: [███████░░░] 67%
 | Phase 01-foundation-inherited-stack P01-02 | 30min | 2 tasks | 78 files |
 | Phase 01-foundation-inherited-stack P01-03 | 12min | 2 tasks | 6 files |
 | Phase 01-foundation-inherited-stack P01-04 | 25min | 2 tasks | 6 files |
+| Phase 03 P01 | 20min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Token de acesso em memória React (não localStorage) + refresh token httpOnly SameSite=Strict — proteção XSS/CSRF no Walking Skeleton
 - [Phase ?]: 5 telas de gestão (GestaoAmbiente, Managers, AdminUsers, ERPBridgeConfig, ERPBridgeCredenciais) antecipadas do 01-05 para o 01-02 — escopo do 01-05 reduzido para menus/navegação e botão Testar Conexão
 - [Phase ?]: environment.go adaptado sem cnpj/cnae_secundario/municipio: schema 001 não tem essas colunas
+- [Phase 03]: Comparação Fiscal: divergência = qualquer diferença != 0 nos 4 pares (ICMS/ICMS-ST/PIS/COFINS), sem tolerância de arredondamento — Validador fiscal — até 1 centavo pode importar (D-06 do 03-CONTEXT.md)
+- [Phase 03]: Item com fiscal_status != 'ok' é classificado como 'Não calculado', nunca como divergente — Evita falso positivo quando o cálculo ainda não foi concluído (D-10)
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T12:25:32.821Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-visual-comparison-screen/03-CONTEXT.md
+Last session: 2026-07-02T13:35:30.472Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
