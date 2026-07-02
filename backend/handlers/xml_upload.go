@@ -21,9 +21,9 @@ import (
 // ---------------------------------------------------------------------------
 
 const (
-	MaxUploadFileBytes   = 2 * 1024 * 1024 * 1024 // 2 GB — tamanho máximo do .zip/.xml enviado
-	MaxUncompressedBytes = 8 * 1024 * 1024 * 1024 // 8 GB — proteção anti-ZIP bomb (total descomprimido)
-	MaxSingleXMLBytes    = 10 * 1024 * 1024       // 10 MB — limite por XML individual
+	MaxUploadFileBytes   = 5 * 1024 * 1024 * 1024  // 5 GB — tamanho máximo do .zip/.xml enviado
+	MaxUncompressedBytes = 20 * 1024 * 1024 * 1024 // 20 GB — proteção anti-ZIP bomb (total descomprimido)
+	MaxSingleXMLBytes    = 10 * 1024 * 1024        // 10 MB — limite por XML individual
 )
 
 // namedXML representa um arquivo XML com seu nome de origem.
@@ -75,7 +75,7 @@ func extractXMLsFromZipFiles(files []*zip.File) ([]namedXML, error) {
 		// T-02-01: verificar tamanho acumulado antes de abrir (anti-ZIP bomb)
 		totalUncompressed += f.UncompressedSize64
 		if totalUncompressed > MaxUncompressedBytes {
-			return nil, fmt.Errorf("conteúdo do ZIP excede limite de 8GB após descompressão")
+			return nil, fmt.Errorf("conteúdo do ZIP excede limite de 20GB após descompressão")
 		}
 
 		rc, err := f.Open()
@@ -208,13 +208,13 @@ func XMLUploadHandler(db *sql.DB) http.HandlerFunc {
 
 		// T-02-01: validar Content-Length ANTES de ler o body
 		if r.ContentLength > MaxUploadFileBytes {
-			jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 2GB")
+			jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 5GB")
 			return
 		}
 
 		// Parsear multipart mantendo ≤64MB em RAM; arquivos maiores vão para disco
 		if err := r.ParseMultipartForm(64 << 20); err != nil {
-			jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 2GB")
+			jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 5GB")
 			return
 		}
 
@@ -253,7 +253,7 @@ func XMLUploadHandler(db *sql.DB) http.HandlerFunc {
 				}
 				if written > MaxUploadFileBytes {
 					os.Remove(tmpPath)
-					jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 2GB")
+					jsonErr(w, http.StatusRequestEntityTooLarge, "Arquivo excede limite de 5GB")
 					return
 				}
 				extracted, archErr := extractXMLsFromZipFile(tmpPath)
