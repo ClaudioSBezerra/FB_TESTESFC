@@ -98,3 +98,14 @@ Phases execute in numeric order: 1 → 2 → 3
 | 1. Foundation & Inherited Stack | 5/5 | Complete   | 2026-06-30 |
 | 2. Import Pipeline & Fiscal Execution | 2/2 | Complete | 2026-07-01 |
 | 3. Visual Comparison Screen | 3/3 | Complete | 2026-07-02 |
+
+### Phase 03.1: Fechar gap: navegação quebrada — ligar navegação clicável às telas de negócio e corrigir loop de redirect para usuários não-admin (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 3
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd:plan-phase 03.1 to break down)

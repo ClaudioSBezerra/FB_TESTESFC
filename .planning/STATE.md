@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: "Fase 3 completa — checkpoint 03-03 aprovado (CMP-01..04 confirmados via API + Playwright contra dados reais do pacote fiscal). Milestone v1.0 com as 3 fases entregues."
-last_updated: "2026-07-02T14:10:00.000Z"
+status: Milestone v1.0 completo. Core value do projeto (tela de comparação) funcionando ponta a ponta contra Oracle real.
+stopped_at: "Milestone v1.0 completo — Fase 3 (checkpoint 03-03) aprovada. Próximo: /gsd:complete-milestone, ou continuar refinando pendências conhecidas (mapa cod_empresa, defaults de parâmetros) com dados reais."
+last_updated: "2026-07-02T14:25:00.217Z"
 last_activity: 2026-07-02
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 10
   completed_plans: 10
-  percent: 100
+  percent: 75
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-30)
 
 **Core value:** Tela que compara, item a item e imposto a imposto, o valor esperado (do XML real) vs. o calculado pelo pacote fiscal (script no FCCORP_BKP), destacando divergências.
-**Current focus:** Milestone v1.0 completo — 3/3 fases entregues
+**Current focus:** Phase 03.1 (URGENT) — fechar gap de navegação antes de fechar o milestone v1.0
 
 ## Current Position
 
-Phase: 03 (visual-comparison-screen) — COMPLETE
-Plan: 3 of 3 — todos verificados
-Status: Milestone v1.0 completo. Core value do projeto (tela de comparação) funcionando ponta a ponta contra Oracle real.
+Phase: 03.1 (fechar-gap-navegação) — INSERTED, ainda não planejada
+Plan: 0 of ? — próximo passo é `/gsd:plan-phase 03.1`
+Status: Milestone v1.0 audit encontrou 2 bloqueadores de navegação (ver v1.0-MILESTONE-AUDIT.md) — as 3 fases planejadas estão completas e verificadas, mas o produto não é usável clicando nele. Milestone não fecha até essa fase ser resolvida.
 Last activity: 2026-07-02
 
-Progress: [██████████] 100%
+Progress: [█████████░] 75%
 
 ## Performance Metrics
 
@@ -78,6 +78,10 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 03-02]: Cards de resumo global recalculados para derivar de displayItems (pós-filtro), corrigindo comportamento herdado do 03-01 que contava sobre a lista bruta
 - [Phase ?]: [Phase 03-02]: Mapeamento curado de full_result (IBS UF/Município, CBS, alíquotas) com rótulos amigáveis + fallback genérico chave-valor para os demais ~70 campos
 
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 3 (URGENT) — Fechar gap: navegação quebrada (achado pelo audit do milestone v1.0 — nenhuma tela de negócio alcançável clicando, loop de redirect para usuários não-admin). Ver `.planning/v1.0-MILESTONE-AUDIT.md`.
+
 ### Pending Todos
 
 None yet.
@@ -97,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T14:10:00.000Z
-Stopped at: Milestone v1.0 completo — Fase 3 (checkpoint 03-03) aprovada. Próximo: /gsd:complete-milestone, ou continuar refinando pendências conhecidas (mapa cod_empresa, defaults de parâmetros) com dados reais.
-Resume file: None
+Last session: 2026-07-02T14:35:00.000Z
+Stopped at: Milestone v1.0 audit rodado — 2 bloqueadores de navegação encontrados (v1.0-MILESTONE-AUDIT.md). Fase 03.1 (URGENT) inserida para fechar o gap. Próximo: /gsd:plan-phase 03.1.
+Resume file: .planning/v1.0-MILESTONE-AUDIT.md
