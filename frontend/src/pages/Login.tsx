@@ -55,7 +55,7 @@ const Login = () => {
 
       login(data);
       toast.success("Login realizado com sucesso!");
-      navigate("/config/erp-bridge");
+      navigate("/importacoes/comparacao-fiscal");
     } catch (error: any) {
       const msg = error.message || "Erro desconhecido";
       setErrorMsg(msg);

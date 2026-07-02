@@ -14,8 +14,9 @@ import ImportarXMLsSaida from './pages/ImportarXMLsSaida'
 import ConsultaNFeSaidas from './pages/ConsultaNFeSaidas'
 import ComparacaoFiscal from './pages/ComparacaoFiscal'
 import { AppRail } from '@/components/AppRail'
+import { ModuleTabs } from '@/components/ModuleTabs'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-// Sem FilialProvider, CompanySwitcher, AjudaChat, ModuleTabs (D-04, D-11)
+// Sem FilialProvider, CompanySwitcher, AjudaChat (D-04, D-11)
 
 const queryClient = new QueryClient()
 
@@ -51,11 +52,11 @@ function AppLayout() {
           )}
           {/* Sem CompanySwitcher (D-11) */}
         </header>
-        {/* Sem ModuleTabs */}
+        <ModuleTabs />
         <main className="flex-1 overflow-auto">
           <div className="p-4">
             <Routes>
-              <Route path="/"                       element={<Navigate to="/config/erp-bridge" replace />} />
+              <Route path="/"                       element={<Navigate to="/importacoes/comparacao-fiscal" replace />} />
               <Route path="/config/ambiente"        element={<ProtectedRoute><GestaoAmbiente /></ProtectedRoute>} />
               <Route path="/config/gestores"        element={<ProtectedRoute><Managers /></ProtectedRoute>} />
               <Route path="/config/usuarios"        element={<AdminRoute><AdminUsers /></AdminRoute>} />
