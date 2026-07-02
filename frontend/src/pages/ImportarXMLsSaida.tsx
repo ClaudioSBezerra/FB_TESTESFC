@@ -88,7 +88,7 @@ export default function ImportarXMLsSaida() {
       setProgress(80);
 
       if (res.status === 413) {
-        toast.error('Arquivo excede o limite de 2GB.');
+        toast.error('Arquivo excede o limite de 5GB.');
         setUploadState('error');
         return;
       }
@@ -140,10 +140,10 @@ export default function ImportarXMLsSaida() {
       'application/zip': ['.zip'],
       'application/x-zip-compressed': ['.zip'],
     },
-    maxSize: 2 * 1024 * 1024 * 1024,
+    maxSize: 5 * 1024 * 1024 * 1024,
     multiple: true,
     onDropRejected: (rejected) => {
-      toast.error(`${rejected.length} arquivo(s) rejeitado(s). Apenas XML e ZIP até 2GB.`);
+      toast.error(`${rejected.length} arquivo(s) rejeitado(s). Apenas XML e ZIP até 5GB.`);
     },
     onDrop: handleUpload,
     disabled: uploadState === 'uploading' || uploadState === 'polling',
@@ -165,7 +165,7 @@ export default function ImportarXMLsSaida() {
         <h1 className="text-2xl font-bold tracking-tight">Importar XMLs</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Importe NF-e (mod. 55) e NFC-e (mod. 65) de SAÍDA da Ferreira Costa. Arraste arquivos
-          XML ou ZIP, ou clique para selecionar. Limite: 2GB por envio.
+          XML ou ZIP, ou clique para selecionar. Limite: 5GB por envio.
         </p>
       </div>
 
@@ -197,7 +197,7 @@ export default function ImportarXMLsSaida() {
               {!isProcessing && !isDragActive && (
                 <>
                   <p className="text-sm font-bold">Arraste XMLs ou .zip de NF-e de saída aqui, ou clique</p>
-                  <p className="text-xs text-muted-foreground mt-1">Aceita .xml, .zip — máximo 2GB</p>
+                  <p className="text-xs text-muted-foreground mt-1">Aceita .xml, .zip — máximo 5GB</p>
                   <button
                     type="button"
                     onClick={e => { e.stopPropagation(); folderInputRef.current?.click(); }}
