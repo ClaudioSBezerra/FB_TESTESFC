@@ -361,6 +361,7 @@ func main() {
 	// T-03-01/T-03-02: withAuth (JWT obrigatório) + company_id sempre via
 	// erpBridgeGetCompany (nunca aceito do cliente).
 	http.HandleFunc("/api/fiscal-comparison", withAuth(handlers.FiscalComparisonListHandler, ""))
+	http.HandleFunc("/api/fiscal-comparison/", withAuth(handlers.FiscalComparisonDetailHandler, ""))
 
 	// ── Health ────────────────────────────────────────────────────────────────
 	http.HandleFunc("/api/health", healthHandler)
