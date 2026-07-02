@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: executing
 stopped_at: Phase 03.1 context gathered
-last_updated: "2026-07-02T14:34:16.577Z"
+last_updated: "2026-07-02T16:46:11.641Z"
 last_activity: 2026-07-02
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
   percent: 75
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-30)
 
 **Core value:** Tela que compara, item a item e imposto a imposto, o valor esperado (do XML real) vs. o calculado pelo pacote fiscal (script no FCCORP_BKP), destacando divergências.
-**Current focus:** Phase 03.1 (URGENT) — fechar gap de navegação antes de fechar o milestone v1.0
+**Current focus:** Phase 03.1 — fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas
 
 ## Current Position
 
-Phase: 03.1 (fechar-gap-navegação) — INSERTED, ainda não planejada
-Plan: 0 of ? — próximo passo é `/gsd:plan-phase 03.1`
-Status: Milestone v1.0 audit encontrou 2 bloqueadores de navegação (ver v1.0-MILESTONE-AUDIT.md) — as 3 fases planejadas estão completas e verificadas, mas o produto não é usável clicando nele. Milestone não fecha até essa fase ser resolvida.
+Phase: 03.1 (fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-07-02
 
 Progress: [█████████░] 75%
@@ -57,6 +57,7 @@ Progress: [█████████░] 75%
 | Phase 01-foundation-inherited-stack P01-04 | 25min | 2 tasks | 6 files |
 | Phase 03 P01 | 20min | 2 tasks | 5 files |
 | Phase 03 P02 | 20min | 2 tasks | 3 files |
+| Phase 03.1 P01 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 03]: Item com fiscal_status != 'ok' é classificado como 'Não calculado', nunca como divergente — Evita falso positivo quando o cálculo ainda não foi concluído (D-10)
 - [Phase ?]: [Phase 03-02]: Cards de resumo global recalculados para derivar de displayItems (pós-filtro), corrigindo comportamento herdado do 03-01 que contava sobre a lista bruta
 - [Phase ?]: [Phase 03-02]: Mapeamento curado de full_result (IBS UF/Município, CBS, alíquotas) com rótulos amigáveis + fallback genérico chave-valor para os demais ~70 campos
+- [Phase 03.1]: config.tabs mantido com exatamente 5 entradas admin/config; as 3 abas de negócio (Importar XMLs, Notas Importadas, Comparação Fiscal) migraram para chaves de módulo próprias
+- [Phase 03.1]: getActiveModule fallback retorna 'comparacao' em vez de 'config', alinhado à nova página de destino pós-login (D-07/D-08) a ser ligada no plano 02
 
 ### Roadmap Evolution
 
@@ -101,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T14:34:16.573Z
+Last session: 2026-07-02T16:44:52.387Z
 Stopped at: Phase 03.1 context gathered
-Resume file: .planning/phases/03.1-fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas/03.1-CONTEXT.md
+Resume file: None

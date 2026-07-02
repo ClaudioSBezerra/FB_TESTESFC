@@ -28,22 +28,22 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### XML Import (Importação de XMLs de saída)
 
-- [ ] **XML-01**: Usuário importa um ou vários XMLs completos de NFe de saída via tela reaproveitada do FB_APU04
-- [ ] **XML-02**: Sistema faz parse e persiste cabeçalho da nota, itens e impostos do XML no Postgres
-- [ ] **XML-03**: Usuário visualiza as notas/itens importados e os valores de imposto originais do XML
-- [ ] **XML-04**: Importação reporta erros de parse/validação de XML de forma clara
+- [x] **XML-01**: Usuário importa um ou vários XMLs completos de NFe de saída via tela reaproveitada do FB_APU04
+- [x] **XML-02**: Sistema faz parse e persiste cabeçalho da nota, itens e impostos do XML no Postgres
+- [x] **XML-03**: Usuário visualiza as notas/itens importados e os valores de imposto originais do XML
+- [x] **XML-04**: Importação reporta erros de parse/validação de XML de forma clara
 
 ### Fiscal Group Lookup (Grupo fiscal via ERP_BRIDGE / Oracle)
 
 - [ ] **ERP-01**: Conexão Oracle de leitura é configurável (reaproveitando credenciais/infra do ERP_BRIDGE)
-- [ ] **ERP-02**: Para cada item do XML, sistema consulta `prod` + `PRODB` e obtém o grupo fiscal do produto
-- [ ] **ERP-03**: Itens sem grupo fiscal localizado são sinalizados sem interromper o processamento dos demais
+- [x] **ERP-02**: Para cada item do XML, sistema consulta `prod` + `PRODB` e obtém o grupo fiscal do produto
+- [x] **ERP-03**: Itens sem grupo fiscal localizado são sinalizados sem interromper o processamento dos demais
 
 ### Fiscal Package Execution (Execução do pacote fiscal no FCCORP_BKP)
 
-- [ ] **FIS-01**: Sistema executa o script do pacote fiscal no FCCORP_BKP (mesma instância Oracle) passando parâmetros herdados do XML de origem + o grupo fiscal lido de PROD/PRODB
-- [ ] **FIS-02**: Sistema carrega e persiste o retorno do script (impostos calculados) vinculado ao item correspondente
-- [ ] **FIS-03**: Falhas na execução do script por item são capturadas e exibidas sem abortar o lote
+- [x] **FIS-01**: Sistema executa o script do pacote fiscal no FCCORP_BKP (mesma instância Oracle) passando parâmetros herdados do XML de origem + o grupo fiscal lido de PROD/PRODB
+- [x] **FIS-02**: Sistema carrega e persiste o retorno do script (impostos calculados) vinculado ao item correspondente
+- [x] **FIS-03**: Falhas na execução do script por item são capturadas e exibidas sem abortar o lote
 
 ### Comparison Screen (Tela de comparação visual)
 
