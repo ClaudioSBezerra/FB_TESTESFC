@@ -19,6 +19,7 @@ export const modules: Record<string, ModuleConfig> = {
       { label: 'Config ERP',       path: '/importacoes/erp-bridge',     adminOnly: true },
       { label: 'Importar XMLs',    path: '/importacoes/xmls-saida' },
       { label: 'Notas Importadas', path: '/importacoes/notas-saida' },
+      { label: 'Comparação Fiscal', path: '/importacoes/comparacao-fiscal' },
       { label: 'Ambiente',         path: '/config/ambiente' },
       { label: 'Gestores',         path: '/config/gestores' },
       { label: 'Usuários',         path: '/config/usuarios',            adminOnly: true },
