@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 03.1 context gathered
-last_updated: "2026-07-02T16:46:11.641Z"
+stopped_at: Completed 03.1-02-PLAN.md
+last_updated: "2026-07-02T16:51:35.209Z"
 last_activity: 2026-07-02
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 75
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 ## Current Position
 
 Phase: 03.1 (fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-02
 
@@ -58,6 +58,7 @@ Progress: [█████████░] 75%
 | Phase 03 P01 | 20min | 2 tasks | 5 files |
 | Phase 03 P02 | 20min | 2 tasks | 3 files |
 | Phase 03.1 P01 | 8min | 2 tasks | 2 files |
+| Phase 03.1 P02 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 03-02]: Mapeamento curado de full_result (IBS UF/Município, CBS, alíquotas) com rótulos amigáveis + fallback genérico chave-valor para os demais ~70 campos
 - [Phase 03.1]: config.tabs mantido com exatamente 5 entradas admin/config; as 3 abas de negócio (Importar XMLs, Notas Importadas, Comparação Fiscal) migraram para chaves de módulo próprias
 - [Phase 03.1]: getActiveModule fallback retorna 'comparacao' em vez de 'config', alinhado à nova página de destino pós-login (D-07/D-08) a ser ligada no plano 02
+- [Phase 03.1]: Configurações icon retargeted from AdminRoute (/config/erp-bridge) to ProtectedRoute (/config/ambiente) so no role bounces to '/'
+- [Phase 03.1]: Root route '/' and post-login redirect both point to /importacoes/comparacao-fiscal (ProtectedRoute), ending the non-admin redirect loop (BLOCKER-2)
 
 ### Roadmap Evolution
 
@@ -104,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T16:44:52.387Z
-Stopped at: Phase 03.1 context gathered
+Last session: 2026-07-02T16:51:35.205Z
+Stopped at: Completed 03.1-02-PLAN.md
 Resume file: None

@@ -104,10 +104,10 @@ Phases execute in numeric order: 1 → 2 → 3
 **Goal:** Toda tela de negócio (Importar XMLs, Notas Importadas, Comparação Fiscal) é alcançável clicando na UI, e usuários não-admin logam sem cair em loop de redirect — fechando BLOCKER-1 e BLOCKER-2 do audit do milestone v1.0.
 **Requirements**: TBD (correção de bug de integração do audit v1.0 — sem requisito novo; ver BLOCKER-1/BLOCKER-2 em .planning/v1.0-MILESTONE-AUDIT.md)
 **Depends on:** Phase 3
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 
 - [x] 03.1-01-PLAN.md — Modelo de navegação (4 módulos em navigation.ts) + novo componente ModuleTabs com filtro adminOnly (dados do BLOCKER-1)
-- [ ] 03.1-02-PLAN.md — Ligar 4 ícones clicáveis no AppRail + renderizar ModuleTabs no layout + corrigir redirects de login/raiz (fiação do BLOCKER-1 + BLOCKER-2)
+- [x] 03.1-02-PLAN.md — Ligar 4 ícones clicáveis no AppRail + renderizar ModuleTabs no layout + corrigir redirects de login/raiz (fiação do BLOCKER-1 + BLOCKER-2)
 - [ ] 03.1-03-PLAN.md — Checkpoint humano: click-through completo como admin E como não-admin (prova que BLOCKER-1/BLOCKER-2 fecharam)
