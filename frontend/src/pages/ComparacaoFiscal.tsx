@@ -19,6 +19,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Search, Filter } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -57,6 +63,47 @@ export interface ComparisonItemRow {
 
   fiscal_status: string; // '' | 'pending' | 'ok' | 'error' | 'sem_grupo_fiscal'
   error_message: string;
+}
+
+// Contrato de GET /api/fiscal-comparison/{id} (Plano 03-02) — os mesmos pares
+// esperado x calculado do item + campos "só calculado" (DIFAL/FCP/full_result).
+export interface ComparisonItemDetail {
+  item_id: string;
+  n_item: number;
+  x_prod: string;
+  ncm: string;
+  cfop: string;
+  nfe_id: string;
+  numero_nfe: string;
+  serie: string;
+  dest_nome: string;
+
+  esp_bc_icms: number;
+  esp_icms: number;
+  esp_bc_st: number;
+  esp_st: number;
+  esp_bc_pis: number;
+  esp_pis: number;
+  esp_bc_cofins: number;
+  esp_cofins: number;
+
+  calc_bc_icms: number | null;
+  calc_icms: number | null;
+  calc_bc_st: number | null;
+  calc_st: number | null;
+  calc_bc_pis: number | null;
+  calc_pis: number | null;
+  calc_bc_cofins: number | null;
+  calc_cofins: number | null;
+
+  percentual_difal: number | null;
+  valor_icms_partilha_destino: number | null; // DIFAL
+  valor_icms_pobreza: number | null; // FCP
+
+  grupo_fiscal_codigo: string;
+  fiscal_status: string;
+  error_message: string;
+  full_result: Record<string, unknown>;
 }
 
 type ItemBucket = 'ok' | 'divergente' | 'nao_calculado';
@@ -163,12 +210,228 @@ function DiffCells({ esperado, calculado }: { esperado: number; calculado: numbe
 }
 
 // ---------------------------------------------------------------------------
+// Helpers de layout do Dialog de detalhe (padrão ConsultaNFeSaidas.tsx:191-218)
+// ---------------------------------------------------------------------------
+function Linha({ label, value }: { label: string; value: string | number | null | undefined }) {
+  return (
+    <div className="flex justify-between py-0.5 border-b border-dashed last:border-0">
+      <span className="text-xs text-muted-foreground w-36 shrink-0">{label}</span>
+      <span className="text-xs font-bold text-right">{value ?? '—'}</span>
+    </div>
+  );
+}
+
+function LinhaBRL({ label, value }: { label: string; value: number | null | undefined }) {
+  return (
+    <div className="flex justify-between py-0.5 border-b border-dashed last:border-0">
+      <span className="text-xs text-muted-foreground w-36 shrink-0">{label}</span>
+      <span className="text-xs font-bold text-right">{fmtBRL(value, '—')}</span>
+    </div>
+  );
+}
+
+function Secao({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-2">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 pb-0.5 border-b">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+// Linha de comparação com 3 valores (Esperado | Calculado | Diferença) — D-05.
+// Destaca em vermelho quando a diferença for != 0 (D-06).
+function LinhaComparativa({
+  label,
+  esperado,
+  calculado,
+}: {
+  label: string;
+  esperado: number;
+  calculado: number | null;
+}) {
+  const diff = pairDiff(esperado, calculado);
+  const divergente = diff !== null && diff !== 0;
+  return (
+    <div
+      className={`grid grid-cols-4 gap-2 py-0.5 border-b border-dashed last:border-0 text-xs ${
+        divergente ? 'bg-red-50' : ''
+      }`}
+    >
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-bold">{fmtBRL(esperado)}</span>
+      <span className="text-right font-bold">{calculado == null ? '—' : fmtBRL(calculado)}</span>
+      <span className={`text-right font-bold ${divergente ? 'text-red-700' : ''}`}>
+        {diff == null ? '—' : fmtBRL(diff)}
+      </span>
+    </div>
+  );
+}
+
+// Rótulos amigáveis para os campos de maior valor de auditoria em full_result
+// (~88 campos do pacote fiscal — nomes conforme FiscalResult em oracle_fiscal.go).
+// Escolha de campos/labels é discretion (03-02-PLAN.md); os demais campos de
+// full_result são renderizados de forma genérica (chave → valor) logo abaixo.
+const FULL_RESULT_LABELS: Record<string, string> = {
+  ValorIbsUF: 'IBS UF',
+  AliquotaIbsUF: 'Alíquota IBS UF (%)',
+  ValorIbsMUN: 'IBS Município',
+  AliquotaIbsMUN: 'Alíquota IBS Município (%)',
+  ValorCbs: 'CBS',
+  AliquotaCbs: 'Alíquota CBS (%)',
+  AliquotaImposto: 'Alíquota ICMS (%)',
+  Mva: 'MVA (%)',
+  AliquotaUFDestino: 'Alíquota UF Destino (%)',
+  ValorIcmsUFDestino: 'Valor ICMS UF Destino',
+  PercentualPartilhaDestino: '% Partilha Destino',
+  AliquotaFundoPobreza: 'Alíquota Fundo Pobreza (%)',
+};
+
+function fmtRawValue(v: unknown): string {
+  if (v == null || v === '') return '—';
+  if (typeof v === 'number') return v.toLocaleString('pt-BR');
+  return String(v);
+}
+
+// ---------------------------------------------------------------------------
+// Dialog de detalhe do item (D-03/D-05/D-07)
+// ---------------------------------------------------------------------------
+function DetalheItem({
+  id,
+  onClose,
+  authHeaders,
+  items,
+}: {
+  id: string;
+  onClose: () => void;
+  authHeaders: Record<string, string>;
+  items: ComparisonItemRow[];
+}) {
+  const { data, isLoading, isError } = useQuery<ComparisonItemDetail>({
+    queryKey: ['fiscal-comparison-item', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/fiscal-comparison/${id}`, { headers: authHeaders });
+      if (!res.ok) throw new Error(res.statusText);
+      return res.json();
+    },
+  });
+
+  // Resumo por nota (CMP-04/D-09) — calculado client-side a partir dos itens
+  // já carregados na lista, filtrados pela mesma nfe_id do item selecionado.
+  const resumoNota = useMemo(() => {
+    if (!data) return null;
+    const itensDaNota = items.filter(i => i.nfe_id === data.nfe_id);
+    return {
+      total: itensDaNota.length,
+      ok: itensDaNota.filter(i => itemBucket(i) === 'ok').length,
+      divergente: itensDaNota.filter(i => itemBucket(i) === 'divergente').length,
+      nao_calculado: itensDaNota.filter(i => itemBucket(i) === 'nao_calculado').length,
+    };
+  }, [data, items]);
+
+  const fullResult = data?.full_result ?? {};
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        {isLoading && (
+          <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p>
+        )}
+        {isError && (
+          <p className="text-sm text-red-600 text-center py-8">Erro ao carregar detalhe do item.</p>
+        )}
+        {data && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-sm">
+                Item {data.n_item} — {data.x_prod}
+                <div className="text-xs font-normal text-muted-foreground mt-0.5">
+                  NF-e {data.numero_nfe}/{data.serie} · {data.dest_nome || '—'} · NCM{' '}
+                  {data.ncm || '—'} · CFOP {data.cfop || '—'}
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-1 mt-1">
+              {resumoNota && (
+                <Secao title="Resumo da nota">
+                  <Linha label="Total de itens" value={resumoNota.total} />
+                  <Linha label="OK" value={resumoNota.ok} />
+                  <Linha label="Divergente" value={resumoNota.divergente} />
+                  <Linha label="Não calculado" value={resumoNota.nao_calculado} />
+                </Secao>
+              )}
+
+              {data.fiscal_status !== 'ok' ? (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                  Item ainda sem cálculo fiscal — nada a comparar.
+                  {data.error_message ? ` Detalhe: ${data.error_message}` : ''}
+                </p>
+              ) : (
+                <>
+                  <Secao title="Comparação — Esperado vs. Calculado">
+                    <div className="grid grid-cols-4 gap-2 py-0.5 text-xs font-bold text-muted-foreground border-b">
+                      <span></span>
+                      <span className="text-right">Esperado</span>
+                      <span className="text-right">Calculado</span>
+                      <span className="text-right">Diferença</span>
+                    </div>
+                    <LinhaComparativa label="Base ICMS" esperado={data.esp_bc_icms} calculado={data.calc_bc_icms} />
+                    <LinhaComparativa label="Valor ICMS" esperado={data.esp_icms} calculado={data.calc_icms} />
+                    <LinhaComparativa label="Base ICMS-ST" esperado={data.esp_bc_st} calculado={data.calc_bc_st} />
+                    <LinhaComparativa label="Valor ICMS-ST" esperado={data.esp_st} calculado={data.calc_st} />
+                    <LinhaComparativa label="Base PIS" esperado={data.esp_bc_pis} calculado={data.calc_bc_pis} />
+                    <LinhaComparativa label="Valor PIS" esperado={data.esp_pis} calculado={data.calc_pis} />
+                    <LinhaComparativa
+                      label="Base COFINS"
+                      esperado={data.esp_bc_cofins}
+                      calculado={data.calc_bc_cofins}
+                    />
+                    <LinhaComparativa label="Valor COFINS" esperado={data.esp_cofins} calculado={data.calc_cofins} />
+                  </Secao>
+
+                  <Secao title="Só calculado (sem par no XML)">
+                    <LinhaBRL label="DIFAL (partilha destino)" value={data.valor_icms_partilha_destino} />
+                    <LinhaBRL label="FCP (pobreza)" value={data.valor_icms_pobreza} />
+                    <Linha
+                      label="% DIFAL"
+                      value={data.percentual_difal != null ? `${data.percentual_difal}%` : '—'}
+                    />
+                    <Linha label="Grupo Fiscal" value={data.grupo_fiscal_codigo || '—'} />
+                    {Object.entries(FULL_RESULT_LABELS).map(([key, label]) => {
+                      const raw = fullResult[key];
+                      if (raw == null || raw === '') return null;
+                      return <Linha key={key} label={label} value={fmtRawValue(raw)} />;
+                    })}
+                  </Secao>
+
+                  <Secao title="Demais campos do pacote fiscal (full_result)">
+                    {Object.entries(fullResult)
+                      .filter(([key, v]) => !(key in FULL_RESULT_LABELS) && v != null && v !== '')
+                      .map(([key, v]) => (
+                        <Linha key={key} label={key} value={fmtRawValue(v)} />
+                      ))}
+                  </Secao>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Página principal
 // ---------------------------------------------------------------------------
 export default function ComparacaoFiscal() {
   const { token, companyId } = useAuth();
 
   const [somenteDivergentes, setSomenteDivergentes] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const authHeaders = {
     Authorization: `Bearer ${token}`,
@@ -193,9 +456,16 @@ export default function ComparacaoFiscal() {
     return items.filter(item => itemBucket(item) === 'divergente');
   }, [items, somenteDivergentes]);
 
-  const countOK = useMemo(() => items.filter(i => itemBucket(i) === 'ok').length, [items]);
-  const countDivergente = useMemo(() => items.filter(i => itemBucket(i) === 'divergente').length, [items]);
-  const countNaoCalculado = useMemo(() => items.filter(i => itemBucket(i) === 'nao_calculado').length, [items]);
+  // CMP-04/D-09: cards derivam de displayItems (respeitam o filtro "só divergentes" atual)
+  const countOK = useMemo(() => displayItems.filter(i => itemBucket(i) === 'ok').length, [displayItems]);
+  const countDivergente = useMemo(
+    () => displayItems.filter(i => itemBucket(i) === 'divergente').length,
+    [displayItems]
+  );
+  const countNaoCalculado = useMemo(
+    () => displayItems.filter(i => itemBucket(i) === 'nao_calculado').length,
+    [displayItems]
+  );
 
   const handleRefetch = () => {
     refetch().catch(err => toast.error('Erro ao buscar comparação fiscal: ' + String(err)));
@@ -234,14 +504,14 @@ export default function ComparacaoFiscal() {
         </CardContent>
       </Card>
 
-      {/* ── Resumo (D-09) ── */}
+      {/* ── Resumo (D-09) — respeita o filtro "só divergentes" atual ── */}
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {[
+            { label: 'Total itens', value: displayItems.length },
             { label: 'OK', value: countOK },
             { label: 'Divergente', value: countDivergente },
             { label: 'Não calculado', value: countNaoCalculado },
-            { label: 'Total itens', value: items.length },
           ].map(c => (
             <Card key={c.label} className="p-2">
               <p className="text-xs text-muted-foreground">{c.label}</p>
@@ -308,7 +578,10 @@ export default function ComparacaoFiscal() {
                     {displayItems.map(item => (
                       <TableRow
                         key={item.item_id}
-                        className={`h-8 ${itemBucket(item) === 'divergente' ? 'bg-red-50' : ''}`}
+                        className={`h-8 cursor-pointer hover:bg-muted/50 ${
+                          itemBucket(item) === 'divergente' ? 'bg-red-50' : ''
+                        }`}
+                        onClick={() => setSelectedId(item.item_id)}
                       >
                         <TableCell className="py-1 px-2 text-xs font-mono whitespace-nowrap">
                           {item.numero_nfe}/{item.serie}
@@ -336,6 +609,15 @@ export default function ComparacaoFiscal() {
           )}
         </CardContent>
       </Card>
+
+      {selectedId && (
+        <DetalheItem
+          id={selectedId}
+          onClose={() => setSelectedId(null)}
+          authHeaders={authHeaders}
+          items={items}
+        />
+      )}
     </div>
   );
 }
