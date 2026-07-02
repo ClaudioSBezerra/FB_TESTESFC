@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone v1.0 completo. Core value do projeto (tela de comparação) funcionando ponta a ponta contra Oracle real.
-stopped_at: "Milestone v1.0 completo — Fase 3 (checkpoint 03-03) aprovada. Próximo: /gsd:complete-milestone, ou continuar refinando pendências conhecidas (mapa cod_empresa, defaults de parâmetros) com dados reais."
-last_updated: "2026-07-02T14:25:00.217Z"
+status: verifying
+stopped_at: Phase 03.1 context gathered
+last_updated: "2026-07-02T14:34:16.577Z"
 last_activity: 2026-07-02
 progress:
   total_phases: 4
@@ -101,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-02T14:35:00.000Z
-Stopped at: Milestone v1.0 audit rodado — 2 bloqueadores de navegação encontrados (v1.0-MILESTONE-AUDIT.md). Fase 03.1 (URGENT) inserida para fechar o gap. Próximo: /gsd:plan-phase 03.1.
-Resume file: .planning/v1.0-MILESTONE-AUDIT.md
+Last session: 2026-07-02T14:34:16.573Z
+Stopped at: Phase 03.1 context gathered
+Resume file: .planning/phases/03.1-fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas/03.1-CONTEXT.md
