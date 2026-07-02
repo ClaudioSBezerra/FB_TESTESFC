@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verified
-stopped_at: "Milestone v1.0 audit re-rodado após Fase 03.1: status passed. Pronto para /gsd:complete-milestone."
-last_updated: "2026-07-02T17:15:00.000Z"
-last_activity: 2026-07-02
+status: Awaiting next milestone
+stopped_at: "Fase 03.1 completa (checkpoint click-through admin+não-admin aprovado). v1.0-MILESTONE-AUDIT.md re-rodado: status passed. Próximo: /gsd:complete-milestone 1.0."
+last_updated: "2026-07-02T17:06:43.599Z"
+last_activity: 2026-07-02 — Milestone v1.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -25,12 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 
 ## Current Position
 
-Phase: 03.1 (fechar-gap-navega-o-quebrada-ligar-navega-o-clic-vel-s-telas) — COMPLETE
-Plan: 3 of 3 — checkpoint humano aprovado (click-through admin + não-admin)
-Status: BLOCKER-1 e BLOCKER-2 do audit v1.0 fechados. v1.0-MILESTONE-AUDIT.md status: passed. Milestone pronto pra fechar.
-Last activity: 2026-07-02
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-02 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -111,3 +109,7 @@ None yet.
 Last session: 2026-07-02T17:15:00.000Z
 Stopped at: Fase 03.1 completa (checkpoint click-through admin+não-admin aprovado). v1.0-MILESTONE-AUDIT.md re-rodado: status passed. Próximo: /gsd:complete-milestone 1.0.
 Resume file: .planning/v1.0-MILESTONE-AUDIT.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd:new-milestone
