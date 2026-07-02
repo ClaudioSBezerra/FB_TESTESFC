@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-30)
 Phase: Milestone v1.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-02 - Completed quick task 260702-lp5: Migração 010_ensure_master_link.sql + padrão MASTER documentado na skill coolify-deploy-checklist
+Last activity: 2026-07-02 - Completed quick task 260702-mwi: Aumentar limite de upload de XML/ZIP de 2GB para 5GB
 
 ## Performance Metrics
 
@@ -100,6 +100,7 @@ None yet.
 | 260702-k3u | Configurar deploy de produção no Coolify/Hostinger (docker-compose.prod.yml + workflow de CI) para https://testesfc.fbtax.cloud | 2026-07-02 | 590ad48 | [260702-k3u-configurar-deploy-de-produ-o-no-coolify-](./quick/260702-k3u-configurar-deploy-de-produ-o-no-coolify-/) |
 | 260702-le0 | Fix produção (503): nginx.conf usava container_name fb_testesfc-api (ignorado pelo Coolify) em vez do alias de rede testesfc-api | 2026-07-02 | b22df36 | [260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte](./quick/260702-le0-corrigir-bug-de-deploy-em-produ-o-fronte/) |
 | 260702-lp5 | Migração idempotente 010_ensure_master_link.sql (garante hierarquia MASTER + vínculo do admin) + padrão documentado na skill global coolify-deploy-checklist | 2026-07-02 | 0ef828a | [260702-lp5-criar-migra-o-010-ensure-master-link-sql](./quick/260702-lp5-criar-migra-o-010-ensure-master-link-sql/) |
+| 260702-mwi | Aumentar limite de upload de XML/ZIP de 2GB para 5GB (nginx+backend+frontend) + corrigir bug real: nginx estava travado em 512M | 2026-07-02 | 4bbfe81 | [260702-mwi-aumentar-limite-de-upload-de-xml-zip-de-](./quick/260702-mwi-aumentar-limite-de-upload-de-xml-zip-de-/) |
 
 ### Blockers/Concerns
 
