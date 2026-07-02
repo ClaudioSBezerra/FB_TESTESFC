@@ -79,7 +79,13 @@ Plans:
   3. Usuário pode filtrar a visualização para exibir apenas os itens com ao menos uma divergência
   4. Tela apresenta um resumo com total de itens, itens sem divergência e itens com divergência — por nota e por lote importado
 
-**Plans**: TBD
+**Plans**: 3 plans (3 waves)
+Plans:
+
+- [ ] 03-01-PLAN.md — Endpoint /api/fiscal-comparison + página lista item a item (Esperado|Calculado|Diferença, divergências destacadas)
+- [ ] 03-02-PLAN.md — Filtro 'só divergentes', cards de resumo e Dialog de detalhe (Base+Valor, seção 'Só calculado' DIFAL/FCP, resumo por nota)
+- [ ] 03-03-PLAN.md — Checkpoint de verificação humana de fim de fase (CMP-01..04 contra dados reais)
+
 **UI hint**: yes
 
 ## Progress
